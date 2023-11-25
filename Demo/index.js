@@ -68,6 +68,9 @@ const fooBar = $SB\`hello\`
     `<code>barFoo.slice(0, barFoo.indexOf(\`ehr\`));<code>`,
     `${toCode(`barFoo`)}: ${barFoo.quot4Print()}`
   );
+  log(
+    `${toCode(`barFoo.initial`)} (<b>note</b>: the value after ${toCode(`fooBar.clone`)}): "${barFoo.initial}"`
+  );
 
   log(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
