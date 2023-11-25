@@ -12,6 +12,7 @@ function createInstance(instanceValue) {
   const initialValue = instanceValue;
   const customMethods = {
     get length() { return instanceValue.length; },
+    get initial() { return initialValue; },
     get value() { return instanceValue; },
     set value(v) { instanceValue = v; },
     get reset() { instanceValue = initialValue; return instanceFunction; },
@@ -26,10 +27,9 @@ function createInstance(instanceValue) {
     get toCamel() { instanceValue = toCamelcase(instanceValue); return instanceFunction; },
     quot4Print(quotes = `","`) { return quot(instanceValue, quotes); },
     is(newValue, ...args) { instanceValue = byContract(newValue, ...args); return instanceFunction; },
-    quot(quotes = `","`) { instanceValue = quot(instanceValue, quotes); return instanceFunction; },
+    quot(quotes = `"`) { instanceValue = quot(instanceValue, quotes); return instanceFunction; },
     indexOf(...args) { return indexOf(instanceValue, ...args); },
     lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
-    nthIndexOf(term2Find, nth) { return nthIndexOf(instanceValue, nth, term2Find); },
     toString() { return instanceValue; },
     valueOf() { return instanceValue; },
     at(pos) { return instanceValue.at(pos); },
@@ -153,6 +153,8 @@ function descriptionsGetter() {
   const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
   const allProps = instanceProps
     .map( ([key, descr]) => {
+      // no natives
+      if (natives.find(nkey => key === nkey)) { return ``; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const fnString = String(descr.get ?? descr.value);
@@ -161,8 +163,9 @@ function descriptionsGetter() {
       if (descr.set) { props.push(`setter (mutates)`); }
       if (/instanceValue\s+?(=|\+=)/.test(fnString) || /empty|reset/.test(key)) { props.push(`mutates`); }
       if (/return (mutableStringInstance|instanceFunction)/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
-      if (!props.length || key === `length`) { props.push(`returns a value (not mutating)`); }
-      return key === `name` ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
+      if (!props.length || /initial|length/i.test(key)) { props.push(`returns a value (not mutating)`); }
+      if (/indexof|valueof|tostring/i.test(key)) { props.push(`(native) override`)}
+      return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
     })
     .filter(v => v.length);
   return allProps.sort( (a, b) => a.localeCompare(b));
