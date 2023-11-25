@@ -58,5 +58,5 @@ Instances can use native String methods and a number of custom methods to change
    Truncates the value from its start to  `[at]` and adds either `...` (`[html]` false) 
    or `&hellip` (`[html]` true) to it. When `[wordBoundary]` is true, truncates at the last word
    within the truncated result.  
-- `value` [*getter, setter (mutates)*] Retrieves the actual instance value
+- `value` [*getter, setter (mutates)*] Retrieves the actual instance value or sets it.
 - `wordsUp` [*getter, mutates, chainable*] converts all first letters of words within the value to uppercase 
