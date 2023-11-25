@@ -8,15 +8,18 @@ Instances can use native String methods and a number of custom methods to change
 <b>ECMAScript (ES) string builder PLUS</b> is programmed in a 
 [class free object oriented](https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming) way.
 
-### All instance getters and methods
+[DEMO](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
+
+### All custom instance getters and methods
 **Notes** 
 - All (*not deprecated*)
   <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
   (e.g. `toUpperCase`) are converted and usable in the same way you would use them for a regular string.
-- A string builder instance can be created using the exported 'constructor' (let's call it `$SB`).  
+- A string builder instance can be created using the imported 'constructor' (let's call it `$SB`).
   `$SB` can be called either as a regular function (e.g. `$SB("some string")`) or as a 
   [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates)
-  (e.g ``$SB`some string` ``).
+  (e.g ``$SB`some string` ``). It can only receive a String or a Number. Any other parameter type will result in an instance 
+  with an empty string as its value.
 - In the following the *custom* getters and methods of an instance are described. 
   - With 'value' the current value of a string builder instance is meant.
   - Value changing (mutating) getters and methods of an instance and the results of native String method calls are 'chainable'.
