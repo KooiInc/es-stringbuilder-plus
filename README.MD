@@ -1,58 +1,61 @@
-## Ecmascript String Builder PLUS
+## ECMAScript String Builder PLUS
 
 `es-stringbuilder-plus` delivers a way to build a string (actually 
 a custom `String` instance making its internal string value <i>mutable</i>).
 
-Instances can use native String methods and a number of custom methods.
-<b>ES string builder PLUS</b> is programmed in a 
+Instances can use native String methods and a number of custom methods to change their internal value without the need for re-assigning.
+
+<b>ECMAScript (ES) string builder PLUS</b> is programmed in a 
 [class free object oriented](https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming) way.
 
 ### All instance getters and methods
-<ul>
-  <li><code>append(str2Append, ...args)</code> [mutates, chainable]</li>
-  <li><code>at(pos)</code> [returns a value (not mutating)]</li>
-  <li><code>charAt(pos)</code> [returns a value (not mutating)]</li>
-  <li><code>clear</code> [getter, mutates, chainable]</li>
-  <li><code>clone</code> [getter, chainable]</li>
-  <li><code>concat(...args)</code> [mutates, chainable]</li>
-  <li><code>empty</code> [getter, mutates, chainable]</li>
-  <li><code>extract(start, end)</code> [mutates, chainable]</li>
-  <li><code>firstUp</code> [getter, mutates, chainable]</li>
-  <li><code>indexOf(...args)</code> [returns a value (not mutating)]</li>
-  <li><code>interpolate(...replacementTokens)</code> [mutates, chainable]</li>
-  <li><code>is(newValue, ...args)</code> [mutates, chainable]</li>
-  <li><code>lastIndexOf(...args)</code> [returns a value (not mutating)]</li>
-  <li><code>length</code> [getter, returns a value (not mutating)]</li>
-  <li><code>normalize()</code> [mutates, chainable]</li>
-  <li><code>nthIndexOf(term2Find, nth)</code> [returns a value (not mutating)]</li>
-  <li><code>padEnd(...args)</code> [mutates, chainable]</li>
-  <li><code>padStart(...args)</code> [mutates, chainable]</li>
-  <li><code>prepend(str2Prepend, ...args)</code> [mutates, chainable]</li>
-  <li><code>prototype</code> [returns a value (not mutating)]</li>
-  <li><code>quot(quotes = `","`)</code> [mutates, chainable]</li>
-  <li><code>quot4Print(quotes = `","`)</code> [returns a value (not mutating)]</li>
-  <li><code>remove(start, end)</code> [mutates, chainable]</li>
-  <li><code>repeat(...args)</code> [mutates, chainable]</li>
-  <li><code>replace(...args)</code> [mutates, chainable]</li>
-  <li><code>replaceAll(...args)</code> [mutates, chainable]</li>
-  <li><code>reset</code> [getter, mutates, chainable]</li>
-  <li><code>slice(...args)</code> [mutates, chainable]</li>
-  <li><code>substring(...args)</code> [mutates, chainable]</li>
-  <li><code>toCamel</code> [getter, mutates, chainable]</li>
-  <li><code>toDashed</code> [getter, mutates, chainable]</li>
-  <li><code>toLocaleLowerCase()</code> [mutates, chainable]</li>
-  <li><code>toLocaleUpperCase()</code> [mutates, chainable]</li>
-  <li><code>toLower</code> [getter, mutates, chainable]</li>
-  <li><code>toLowerCase()</code> [mutates, chainable]</li>
-  <li><code>toString()</code> [returns a value (not mutating)]</li>
-  <li><code>toUpper</code> [getter, mutates, chainable]</li>
-  <li><code>toUpperCase()</code> [mutates, chainable]</li>
-  <li><code>toWellFormed()</code> [mutates, chainable]</li>
-  <li><code>trim()</code> [mutates, chainable]</li>
-  <li><code>trimEnd()</code> [mutates, chainable]</li>
-  <li><code>trimStart()</code> [mutates, chainable]</li>
-  <li><code>truncate(at, { html = false, wordBoundary = false } = {} )</code> [mutates, chainable]</li>
-  <li><code>value</code> [getter, setter (mutates)]</li>
-  <li><code>valueOf()</code> [returns a value (not mutating)]</li>
-  <li><code>wordsUp</code> [getter, mutates, chainable]</li>
-</ul>
+**Notes** 
+- All (*not deprecated*)
+  <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
+  (e.g. `toUpperCase`) are converted and usable in the same way you would use them for a regular string.
+- A string builder instance can be created using the exported 'constructor' (let's call it `$SB`).  
+  `$SB` can be called either as a regular function (e.g. `$SB("some string")`) or as a 
+  [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates)
+  (e.g ``$SB`some string` ``).
+- In the following the *custom* getters and methods of an instance are described. 
+  - With 'value' the current value of a string builder instance is meant.
+  - Value changing (mutating) getters and methods of an instance and the results of native String method calls are 'chainable'.
+  - [Chainable](https://www.geeksforgeeks.org/method-chaining-in-javascript/) means the result can be followed by a new getter-/method-call (e.g. `[instance].toUpperCase().quot("[,]")`).
+  
+---
+
+- `append(str2Append)` [*mutates, chainable*] Appends [`str2Append`] to the value.
+- `clear` [*getter, mutates, chainable*] Clears the value - effectively rendering it to an empty string.
+- `clone` [*getter, chainable*] Creates a clone of the instance.
+- `empty` [*getter, mutates, chainable*] Alias of `clear`. Clears the value, effectively rendering it to an empty string.
+- `firstUp` [*getter, mutates, chainable*] Convert the first letter of the value to uppercase.
+- `indexOf(stringToFindIndexOf: string, [startPosition]: int)` [*native (override), returns a value (not mutating)*] 
+   Returns the (zero based) index of the substring to find (optional starting at `[startPosition]`) or (the actual override) `undefined` when nothing was found.
+- `initial` [*getter, returns a value (not mutating)*] Retrieves the value the instance was instantiated with (see also `reset`). 
+- `interpolate(...replacementTokens)` [*mutates, chainable*]
+   Interpolates terms from the value with one or more replacement objects (`[replacementTokens]`). 
+   see the GitHub [StringInterpolator](https://github.com/KooiInc/StringInterpolator) library or the demo for how to use.  
+- `is(newValue: string/template string))` [*mutates, chainable*] Assigns `[newValue]` to the value.
+
+  **Notes**: 
+  - `[instance].is(...)` will *not* change the *initial instance value* (which is stored for use in `[instance].reset`).
+  - to re-assign the instance value one can also use the setter `[instance].value = ...`
+- `prepend(str2Prepend: string/template string)` [*mutates, chainable*]  inserts `[str2Prepend]` before the value.
+- `quot(quotes = '"')` [*mutates, chainable*] Adds `[quotes]` to the start and end of the value.
+   `[quotes]` can be one character, or a string of two comma separated characters/string (e.g. `"[,]"` or `"*start*,*end*"`).    
+- `quot4Print(quotes = '"')` [*returns a value (not mutating)*] Equal to `quot`, but will set the value.  
+   This will return the value surrounded with the given `[quotes]`, e.g. for printing to screen. 
+- `remove(start: number, end: number)` [*mutates, chainable*] Removes the part of the value from `[start]` 
+   to `[end]`. If neither  `[start]` and/or `[end]` are given, nothing will happen to the value. If one of
+   `[start]` or `[end]` is not given, the defaults are respectively 0 or the length of the value. 
+- `reset` [*getter, mutates, chainable*] Sets the value back to the value the instance was instantiated with.
+- `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa bbb` or `aaa-bbb` to camelCased notation (`aaaBbb`). 
+- `toDashed` [*getter, mutates, chainable*] converts a value with pattern `aaaBbbCcc` to dashed notation (`aaa-bbb-ccc`)
+- `toLower` [*getter, mutates, chainable*] alias for `String.prototype.toLowerCase`.
+- `toUpper` [*getter, mutates, chainable*] alias for `String.prototype.toUpperCase`.
+- `truncate(at:number, { html = false, wordBoundary = false } = {} )` [*mutates, chainable*] 
+   Truncates the value from its start to  `[at]` and adds either `...` (`[html]` false) 
+   or `&hellip` (`[html]` true) to it. When `[wordBoundary]` is true, truncates at the last word
+   within the truncated result.  
+- `value` [*getter, setter (mutates)*] Retrieves the actual instance value
+- `wordsUp` [*getter, mutates, chainable*] converts all first letters of words within the value to uppercase 
