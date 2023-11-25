@@ -44,7 +44,8 @@ Instances can use native String methods and a number of custom methods to change
 - `quot(quotes = '"')` [*mutates, chainable*] Adds `[quotes]` to the start and end of the value.
    `[quotes]` can be one character, or a string of two comma separated characters/string (e.g. `"[,]"` or `"*start*,*end*"`).    
 - `quot4Print(quotes = '"')` [*returns a value (not mutating)*] Equal to `quot`, but will set the value.  
-   This will return the value surrounded with the given `[quotes]`, e.g. for printing to screen. 
+   This will return the value surrounded with the given `[quotes]`, e.g. for printing to screen.  
+   `[end]` can be negative (meaning `[end]` characters from the end of the value).
 - `remove(start: number, end: number)` [*mutates, chainable*] Removes the part of the value from `[start]` 
    to `[end]`. If neither  `[start]` and/or `[end]` are given, nothing will happen to the value. If one of
    `[start]` or `[end]` is not given, the defaults are respectively 0 or the length of the value. 
