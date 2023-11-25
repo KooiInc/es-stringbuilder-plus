@@ -15,7 +15,7 @@ Instances can use native String methods and a number of custom methods to change
 - All (*not deprecated*)
   <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
   (e.g. `toUpperCase`) are converted and usable in the same way you would use them for a regular string.
-- A string builder instance can be created using the exported 'constructor' (let's call it `$SB`).  
+- A string builder instance can be created using the imported 'constructor' (let's call it `$SB`).
   `$SB` can be called either as a regular function (e.g. `$SB("some string")`) or as a 
   [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates)
   (e.g ``$SB`some string` ``). It can only receive a String or a Number. Any other parameter type will result in an instance 
