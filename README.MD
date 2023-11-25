@@ -1,7 +1,7 @@
 ## ECMAScript String Builder PLUS
 
 `es-stringbuilder-plus` delivers a way to build a string (actually 
-a custom `String` instance making its internal string value <i>mutable</i>).
+a wrapped `String` instance delivering a <i>mutable</i> string value).
 
 Instances can use native String methods and a number of custom methods to change their internal value without the need for re-assigning.
 
