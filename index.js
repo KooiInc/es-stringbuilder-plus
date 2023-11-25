@@ -10,7 +10,7 @@ export default function StringBuilder(str, ...args) {
 function createInstance(instanceValue) {
   const instanceFunction = function() {};
   const initialValue = instanceValue;
-  const customFns = {
+  const customMethods = {
     get length() { return instanceValue.length; },
     get value() { return instanceValue; },
     set value(v) { instanceValue = v; },
@@ -44,14 +44,14 @@ function createInstance(instanceValue) {
     interpolate(...replacementTokens) { instanceValue = interpolate(instanceValue, ...replacementTokens); return instanceFunction; },
   };
   natives.forEach( key =>
-    instanceFunction[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length 
+    instanceFunction[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
       ? function(...args) {
           instanceValue = instanceValue[key]?.(...args);
           return instanceFunction; }
       : function() {
           instanceValue = instanceValue[key]?.();
           return instanceFunction; } );
-  Object.entries(Object.getOwnPropertyDescriptors(customFns))
+  Object.entries(Object.getOwnPropertyDescriptors(customMethods))
    .forEach(([key, value]) => Object.defineProperty(instanceFunction, key, value) );
 
   return instanceFunction;
@@ -88,7 +88,7 @@ function nativeStringMethods() {
     .filter( ([key, v]) => !deprecated[key] && checkReturnValue(key, v) === `string` )
     .map( ([key,]) => key );
 
-  return allMethodsReturningAString;  
+  return allMethodsReturningAString;
 }
 
 function quot(str, chr = `","`) {
@@ -182,7 +182,7 @@ function interpolateFactory() {
       str.replace( /\{(?<key>[a-z_\d]+)}/gim, replacer(token, defaultReplacer) ),
   };
   const interpolate = (str, defaultReplacer, ...tokens) => tokens.flat()
-    .reduce( (acc, token) => 
+    .reduce( (acc, token) =>
       acc.concat(!isObject(token) ? `` : replace(str, token, defaultReplacer )), ``);
   
   return (str, ...tokens) => {
