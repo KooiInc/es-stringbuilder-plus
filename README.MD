@@ -10,7 +10,7 @@ Instances can use native String methods and a number of custom methods to change
 
 [DEMO](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
 
-### All instance getters and methods
+### All custom instance getters and methods
 **Notes** 
 - All (*not deprecated*)
   <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
