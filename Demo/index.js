@@ -6,8 +6,8 @@ const printQuoted = str => `"${str}"`;
 const toCode = (str, block) => `<code${block ? ` class="codeblock"` : ``}>${str}</code>`;
 const escHtml = str => str.replace(/</g, `&lt;`);
 const spacer = _ => log(`!!<p>&nbsp;</p>`);
-
 console.clear();
+log(`!!<a target="_top" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>Back to repository</b></a>`)
 demo();
 
 function demo() {
