@@ -45,10 +45,10 @@ Instances can use native String methods and a number of custom methods to change
    `[quotes]` can be one character, or a string of two comma separated characters/string (e.g. `"[,]"` or `"*start*,*end*"`).    
 - `quot4Print(quotes = '"')` [*returns a value (not mutating)*] Equal to `quot`, but will set the value.  
    This will return the value surrounded with the given `[quotes]`, e.g. for printing to screen.  
-   `[end]` can be negative (meaning `[end]` characters from the end of the value).
 - `remove(start: number, end: number)` [*mutates, chainable*] Removes the part of the value from `[start]` 
    to `[end]`. If neither  `[start]` and/or `[end]` are given, nothing will happen to the value. If one of
-   `[start]` or `[end]` is not given, the defaults are respectively 0 or the length of the value. 
+   `[start]` or `[end]` is not given, the defaults are respectively 0 or the length of the value.  
+  `[end]` can be negative (meaning `[end]` characters from the end of the value). 
 - `reset` [*getter, mutates, chainable*] Sets the value back to the value the instance was instantiated with.
 - `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa bbb` or `aaa-bbb` to camelCased notation (`aaaBbb`). 
 - `toDashed` [*getter, mutates, chainable*] converts a value with pattern `aaaBbbCcc` to dashed notation (`aaa-bbb-ccc`)
