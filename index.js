@@ -146,7 +146,7 @@ function nthIndexOf(str, nth, findMe) {
 }
 
 function ucFirst([first, ...theRest]) {
-  return `${first.toUpperCase()}${theRest.join(``).toLowerCase()}`;
+  return `${first.toUpperCase()}${theRest.join(``)}`;
 }
 
 function descriptionsGetter() {
