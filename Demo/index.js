@@ -51,14 +51,16 @@ const fooBar = $SB\`hello\`
     `${toCode("const isntit = `isn't that well ... ehr ... you know ...?`;\nfooBar.is`thats me, ${isntit}`", true)}
      ${toCode(`fooBar`)}: ${fooBar}
     <div>${toCode("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}`);
-    
-  const barFoo = fooBar.clone.slice(-13, -5);
+  
+  const barFoo = fooBar.clone.extract(-13, fooBar.lastIndexOf(`...`)-1).append(`?`);
   print(
     `!!<h3>Continue with a clone</h3>`,
-    `<div>${toCode(`const barFoo = fooBar.<i>clone</i>.slice(-13, -5);`)}: ${barFoo.quot4Print()}</div>
+    `<div>${
+      toCode(`const barFoo = fooBar.<i>clone</i>.extract(-13, fooBar.lastIndexOf(\`...\`) - 1).append(\`?\`);`)}
+     <br>${toCode(`barFoo`)} => ${barFoo.quot4Print()}</div>
      <div><code>fooBar</code> still: ${fooBar.quot4Print()}</div>`
   );
-
+  
   barFoo.value = `I am barFoo, ${isntIt}`;
   print(
     `${toCode("barFoo.value = `I am barFoo, ${isntit}`;")}
@@ -66,9 +68,10 @@ const fooBar = $SB\`hello\`
   );
   
   print(`${toCode("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
-    <div>${toCode(`barFoo.initial`)} (<b>note</b>: the value after ${toCode(`fooBar.clone`)}): "${barFoo.initial}"</div>`
+    <div>${toCode(`barFoo.initial`)} "${barFoo.initial}"<br>
+    <b>Note</b>: ${toCode(`barFoo.initial`)} is the value from <i>directly after</i> ${toCode(`fooBar.clone`)}</div>`
   );
-
+  
   print(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
   print(
@@ -80,7 +83,7 @@ const fooBar = $SB\`hello\`
     `${toCode("fooBarred.value = 42;")}
     <div>${toCode(`fooBarred`)}: ${fooBarred.quot4Print()} (numbers are converted to string)</div>`
   );
-
+  
   print(`!!<h3>Additional case getters</h3>`);
   const lorem = $SB`lorem ipsum dolor sit amet`;
   const lorem2 = lorem.clone.toLowerCase().wordsUp.replace(/\s/g, ``).toDashed;
@@ -90,7 +93,7 @@ const fooBar = $SB\`hello\`
   print(`${toCode("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
   print(`${toCode("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
   print(`${toCode("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
-
+  
   print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
     ({ row: `<tr><td>#${i+1}</td><td>cell ${i+1}.1</td><td>cell ${i+1}.2</td></tr>`}) );
@@ -112,25 +115,25 @@ const fooBar = $SB\`hello\`
   print(
     toCode(`${repY}<br>${repX}`, true),
     `${toCode(`tbl`)} =&gt; ${tbl}`);
-
+  
   print(`!!<h3>Available custom getters and methods of a $SB instance</h3>
       <div>These are the 'extensions' one can use for a $SB instance.
       One can also use all (<i>not deprecated</i>) native
       <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"
       >String methods</a>. The result of these native methods can mostly be
       <a target="_blank" href="https://www.geeksforgeeks.org/method-chaining-in-javascript/">chained</a>.</div>`,
-     `${toCode("$SB.describe")} =>
+    `${toCode("$SB.describe")} =>
      <div class="local">${describe2HTML()}</div>`);
-
+  
   styleIt();
   embed();
-
+  
   print(`!!<button id="perfBttn">performance</button>`);
   $(`#perfBttn`).on(`click`, () => {
     $.Popup.show({ content: `<b>Working on it...</b>`, modal: true });
     setTimeout(_ => ($.Popup.removeModal(), testPerformance()), 10);
   });
-
+  
   spacer();
 }
 
@@ -153,7 +156,7 @@ function testPerformance(n = 100_000) {
   let result = `<b>Performance</b>
     <div>Created ${n.toLocaleString()} instances using ${toCode("$SB`hello world`.repeat(5).toUpperCase()")}
     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/instance, Σ ${
-      sum.toLocaleString()} seconds</div>`;
+    sum.toLocaleString()} seconds</div>`;
   
   perf = performance.now();
   let something = $SB``;
@@ -161,7 +164,7 @@ function testPerformance(n = 100_000) {
   for (let i = 0; i < n; i += 1) {
     something.prepend(`hello `).append(`world`);
   }
-
+  
   perf = performance.now() - perf;
   const sum2 = +(perf/1000).toFixed(3);
   result +=
