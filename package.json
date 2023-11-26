@@ -1,0 +1,27 @@
+{
+  "name": "esstringbuilderplus",
+  "version": "1.0.0",
+  "description": "ES string builder with extra's",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KooiInc/es-stringbuilder-plus.git"
+  },
+  "keywords": [
+    "EcmaScript",
+    "stringbuilder"
+  ],
+  "author": "KooiInc",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KooiInc/es-stringbuilder-plus/issues"
+  },
+  "homepage": "https://github.com/KooiInc/es-stringbuilder-plus#readme",
+  "devDependencies": {
+    "esbuild": "^0.19.7"
+  },
+  "type": "module"
+}
