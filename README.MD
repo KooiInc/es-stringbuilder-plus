@@ -8,9 +8,12 @@ Instances can use native String methods and a number of custom methods to change
 <b>ECMAScript (ES) string builder PLUS</b> is programmed in a 
 [class free object oriented](https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming) way.
 
-[DEMO](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
+[**DEMO**](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
+
+Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 
 ### All custom instance getters and methods
+
 **Notes** 
 - All (*not deprecated*)
   <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
