@@ -1,18 +1,18 @@
 import $SB from "../index.js";
 
 const {logFactory, $} = await import("./sbHelpers.bundled.js");
-const { log, } = logFactory();
+const { log: print, } = logFactory();
 const printQuoted = str => `"${str}"`;
 const toCode = (str, block) => `<code${block ? ` class="codeblock"` : ``}>${str}</code>`;
 const escHtml = str => str.replace(/</g, `&lt;`);
-const spacer = _ => log(`!!<p>&nbsp;</p>`);
+const spacer = _ => print(`!!<p>&nbsp;</p>`);
 console.clear();
-log(`!!<a target="_top" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>Back to repository</b></a>`)
+print(`!!<a target="_top" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>Back to repository</b></a>`)
 demo();
 
 function demo() {
   window.$SB = $SB; // use in console
-  log(`!!<h2>ES stringbuilder PLUS</h2>
+  print(`!!<h2>ES stringbuilder PLUS</h2>
   <div>
     <div class="q">
     In many other languages, a programmer can choose to explicitly use a string view or a
@@ -31,9 +31,9 @@ function demo() {
         >class free object oriented</a> way.
     </p>
   </div>`);
-  log(`!!<h3>String builder examples</h3>`);
+  print(`!!<h3>String builder examples</h3>`);
   const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
-  log(`${toCode(`import $SB from "./StringBuilderModule.js";
+  print(`${toCode(`import $SB from "./StringBuilderModule.js";
 const fooBar = $SB\`hello\`
   .replace(\`hello\`, \`hell o \`)
   .repeat(3)
@@ -42,56 +42,56 @@ const fooBar = $SB\`hello\`
   <div>${toCode(`fooBar.length`)}: ${fooBar.length}</div>
   <div>${toCode(`fooBar.at(0)`)} => ${printQuoted(fooBar.at(0))}</div>`);
   
-  log(
+  print(
     `<code>fooBar.truncate(8, { wordBoundary: true, html: true }).quot("[,]")</code>
      <div>${toCode(`fooBar`)}: ${fooBar.truncate(8, {wordBoundary: true, html: true }).quot(`[,]`)}</div>`);
   const isntIt = `isn't that well ... ehr ... you know ...?`;
   fooBar.is`That's me ${isntIt}`;
-  log(
+  print(
     `${toCode("const isntit = `isn't that well ... ehr ... you know ...?`;\nfooBar.is`thats me, ${isntit}`", true)}
      ${toCode(`fooBar`)}: ${fooBar}
     <div>${toCode("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}`);
     
   const barFoo = fooBar.clone.slice(-13, -5);
-  log(
+  print(
     `!!<h3>Continue with a clone</h3>`,
     `<div>${toCode(`const barFoo = fooBar.<i>clone</i>.slice(-13, -5);`)}: ${barFoo.quot4Print()}</div>
      <div><code>fooBar</code> still: ${fooBar.quot4Print()}</div>`
   );
 
   barFoo.value = `I am barFoo, ${isntIt}`;
-  log(
+  print(
     `${toCode("barFoo.value = `I am barFoo, ${isntit}`;")}
     <div>${toCode(`barFoo`)}: ${printQuoted(barFoo)}</div>`
   );
   
-  log(`${toCode("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
+  print(`${toCode("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
     <div>${toCode(`barFoo.initial`)} (<b>note</b>: the value after ${toCode(`fooBar.clone`)}): "${barFoo.initial}"</div>`
   );
 
-  log(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
+  print(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
-  log(
+  print(
     `<code>const fooBarred = $SB({no: \`can do\`});<code>`,
     `${toCode(`fooBarred`)} is an empty string (see console): ${fooBarred.quot4Print()}`
   );
   fooBarred.value = 42;
-  log(
+  print(
     `${toCode("fooBarred.value = 42;")}
     <div>${toCode(`fooBarred`)}: ${fooBarred.quot4Print()} (numbers are converted to string)</div>`
   );
 
-  log(`!!<h3>Additional case getters</h3>`);
+  print(`!!<h3>Additional case getters</h3>`);
   const lorem = $SB`lorem ipsum dolor sit amet`;
   const lorem2 = lorem.clone.toLowerCase().wordsUp.replace(/\s/g, ``).toDashed;
-  log(`${toCode("$SB`lorem ipsum dolor sit amet`.toUpper")} => ${lorem.toUpper.quot4Print()}`);
-  log(`${toCode("$SB`LOREM IPSUM DOLOR SIT AMET`.toLower")} => ${lorem.toLower.quot4Print()}`);
-  log(`${toCode("$SB`lorem ipsum dolor sit amet`.firstUp")} => ${lorem.firstUp.quot4Print()}`);
-  log(`${toCode("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
-  log(`${toCode("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
-  log(`${toCode("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
+  print(`${toCode("$SB`lorem ipsum dolor sit amet`.toUpper")} => ${lorem.toUpper.quot4Print()}`);
+  print(`${toCode("$SB`LOREM IPSUM DOLOR SIT AMET`.toLower")} => ${lorem.toLower.quot4Print()}`);
+  print(`${toCode("$SB`lorem ipsum dolor sit amet`.firstUp")} => ${lorem.firstUp.quot4Print()}`);
+  print(`${toCode("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
+  print(`${toCode("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
+  print(`${toCode("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
 
-  log(`!!<h3>Interpolate</h3>`);
+  print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
     ({ row: `<tr><td>#${i+1}</td><td>cell ${i+1}.1</td><td>cell ${i+1}.2</td></tr>`}) );
   const tbl = $SB`{row}`
@@ -109,11 +109,11 @@ const fooBar = $SB\`hello\`
   const repY = `const someRows = [...Array(5)].map( (_, i) =>
   ( { row: ${escHtml(`\`<tr><td>#\${i+1}</td><td>cell \${
       i+1}.1</td><td>cell \${i+1}.2</td></tr>\``)} } );`;
-  log(
+  print(
     toCode(`${repY}<br>${repX}`, true),
     `${toCode(`tbl`)} =&gt; ${tbl}`);
 
-  log(`!!<h3>Available custom getters and methods of a $SB instance</h3>
+  print(`!!<h3>Available custom getters and methods of a $SB instance</h3>
       <div>These are the 'extensions' one can use for a $SB instance.
       One can also use all (<i>not deprecated</i>) native
       <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"
@@ -125,7 +125,7 @@ const fooBar = $SB\`hello\`
   styleIt();
   embed();
 
-  log(`!!<button id="perfBttn">performance</button>`);
+  print(`!!<button id="perfBttn">performance</button>`);
   $(`#perfBttn`).on(`click`, () => {
     $.Popup.show({ content: `<b>Working on it...</b>`, modal: true });
     setTimeout(_ => ($.Popup.removeModal(), testPerformance()), 10);
