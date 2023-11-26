@@ -12,25 +12,25 @@ demo();
 
 function demo() {
   window.$SB = $SB; // use in console
-  print(`!!<h2>ES stringbuilder PLUS</h2>
-  <div>
-    <div class="q">
-    In many other languages, a programmer can choose to explicitly use a string view or a
-    string builder where they really need them. But JS has the programmer either hoping the
-    engine is smart enough, or using black magic to force it to do what they want.
-    </div>
-    <p>
-      Cited from <a target="_blank" href="https://iliazeus.github.io/articles/js-string-optimizations-en/"
-      >Exploring V8's strings: implementation and optimizations</a>.</p>
-    <p>
+  const header = $SB`!!<h2>ES stringbuilder PLUS</h2>`
+    .append`<div class="q">
+      In many other languages, a programmer can choose to explicitly use a string view or a
+      string builder where they really need them. But JS has the programmer either hoping the
+      engine is smart enough, or using black magic to force it to do what they want.
+      </div>`
+    .append($SB`Cited from
+        <a target="_blank" href="https://iliazeus.github.io/articles/js-string-optimizations-en/"
+        >Exploring V8's strings: implementation and optimizations</a>.</p>
+      `.quot(`<p>,</p>`))
+    .append`<p>
       Consider the code here the aforementioned <i>black magic</i>. It delivers a way to build a string
       (actually a wrapped <code>String</code> instance making its internal string value <i>mutable</i>).
       Instances can use native String methods and a number of custom methods.
       <b>ES (EcmaScript) string builder PLUS</b> is programmed in a <a target="_blank"
         href="https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming"
         >class free object oriented</a> way.
-    </p>
-  </div>`);
+    </p>`;
+  print(header.value);
   print(`!!<h3>String builder examples</h3>`);
   const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
   print(`${toCode(`import $SB from "[location of es-stringbuilder-plus module]";
