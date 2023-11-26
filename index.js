@@ -2,6 +2,7 @@ const natives =  nativeStringMethods();
 const interpolate = interpolateFactory();
 
 Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
+Object.defineProperty(StringBuilder, `describeAll`, { get() { return descriptionsGetter(true); } });
 
 export default function StringBuilder(str, ...args) {
   return Object.freeze(createInstance(byContract(str, ...args)));
@@ -31,9 +32,9 @@ function createInstance(instanceValue) {
     lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
     toString() { return instanceValue; },
     valueOf() { return instanceValue; },
-    at(pos) { return instanceValue.at(pos); },
-    codePointAt(pos) { return instanceValue.codePointAt(pos); },
-    charAt(pos) { return instanceValue.charAt(pos); },
+    //at(pos) { return instanceValue.at(pos); },
+    //codePointAt(pos) { return instanceValue.codePointAt(pos); },
+    //charAt(pos) { return instanceValue.charAt(pos); },
     prepend(str2Prepend, ...args) { instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
       instanceValue; return instance; },
     append(str2Append, ...args) {
@@ -66,9 +67,9 @@ function createInstance(instanceValue) {
 function getExclusion() {
   // note:
   // trimLeft/-Right are redundant (use trimStart/-End),
-  // indexOf, lastIndexOf, at, codePointAt and charAt are overridden.
-  return `at,charAt,anchor,big,blink,bold,fixed,fontcolor,fontsize,italics,link,small,
-          codePointAt,strike,sub,substr,sup,trimLeft,trimRight,indexOf,lastIndexOf`
+  // indexOf and lastIndexOf are overridden.
+  return `anchor,big,blink,bold,fixed,fontcolor,fontsize,italics,link,small,
+          strike,sub,substr,sup,trimLeft,trimRight,indexOf,lastIndexOf`
     .split(`,`)
     .reduce( (acc, key) => ({...acc, [key.trim()]: true}), {});
 }
@@ -91,14 +92,17 @@ function wordsFirstUp(str) {
 
 function nativeStringMethods() {
   const excluded = getExclusion();
+  const excludeFromChainRE = /^(at|charAt|codePointAt)$/i;
   const checkReturnValue = (key, v) => v.value instanceof Function && typeof `abc`[key]() || `n/a`;
   const chainable = Object
     .entries(Object.getOwnPropertyDescriptors(String.prototype))
-    .filter( ([key, v]) => !excluded[key] && checkReturnValue(key, v) === `string` )
+    .filter( ([key, v]) =>
+      !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
     .map( ([key,]) => key );
   const valueReturn = Object
     .entries(Object.getOwnPropertyDescriptors(String.prototype))
-    .filter( ([key, v]) => !excluded[key] && checkReturnValue(key, v) !== `string` )
+    .filter( ([key, v]) =>
+      !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
     .map( ([key,]) => key );
 
   return { chainable, valueReturn }
@@ -160,12 +164,12 @@ function ucFirst([first, ...theRest]) {
   return `${first.toUpperCase()}${theRest.join(``)}`;
 }
 
-function descriptionsGetter() {
+function descriptionsGetter(full = false) {
   const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
   const allProps = instanceProps
     .map( ([key, descr]) => {
       const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
-      if (allNatives.find(nkey => key === nkey)) { return ``; }
+      if (!full && allNatives.find(nkey => key === nkey)) { return ``; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const fnString = String(descr.get ?? descr.value);
@@ -175,7 +179,7 @@ function descriptionsGetter() {
       if (/instanceValue\s+?(=|\+=)/.test(fnString) || /empty|reset/.test(key)) { props.push(`mutates`); }
       if (/return instance;/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
       if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
-      if (/^(indexof|lastindexof|at|charat|codepointat)$/i.test(key)) { props.push(`(native) override`)}
+      if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`)}
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
     })
     .filter(v => v.length);
