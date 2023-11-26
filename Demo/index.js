@@ -1,4 +1,4 @@
-import $SB from "../index.min.js";
+import $SB from "../index.js";
 
 const {logFactory, $} = await import("./sbHelpers.bundled.js");
 const { log: print, } = logFactory();
