@@ -23,8 +23,8 @@ function demo() {
       Cited from <a target="_blank" href="https://iliazeus.github.io/articles/js-string-optimizations-en/"
       >Exploring V8's strings: implementation and optimizations</a>.</p>
     <p>
-      Consider the code here <i>black magic</i>. It delivers a way to build a string (actually
-      a wrapped <code>String</code> instance making its internal string value <i>mutable</i>).
+      Consider the code here the aforementioned <i>black magic</i>. It delivers a way to build a string
+      (actually a wrapped <code>String</code> instance making its internal string value <i>mutable</i>).
       Instances can use native String methods and a number of custom methods.
       <b>ES (EcmaScript) string builder PLUS</b> is programmed in a <a target="_blank"
         href="https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming"
@@ -33,43 +33,40 @@ function demo() {
   </div>`);
   log(`!!<h3>String builder examples</h3>`);
   const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
-  log(toCode(`import $SB from "./StringBuilderModule.js";
+  log(`${toCode(`import $SB from "./StringBuilderModule.js";
 const fooBar = $SB\`hello\`
   .replace(\`hello\`, \`hell o \`)
   .repeat(3)
-  .firstUp;`, true));
+  .firstUp;`, true)}
+  <div>${toCode(`fooBar`)}: ${printQuoted(fooBar)}</div>
+  <div>${toCode(`fooBar.length`)}: ${fooBar.length}</div>
+  <div>${toCode(`fooBar.at(0)`)} => ${printQuoted(fooBar.at(0))}</div>`);
+  
   log(
-    `${toCode(`fooBar`)} ${printQuoted(fooBar)}`,
-    `${toCode(`fooBar.length`)}: ${fooBar.length}`,
-    `${toCode(`fooBar.at(0)`)} => ${printQuoted(fooBar.at(0))};`);
+    `<code>fooBar.truncate(8, { wordBoundary: true, html: true }).quot("[,]")</code>
+     <div>${toCode(`fooBar`)}: ${fooBar.truncate(8, {wordBoundary: true, html: true }).quot(`[,]`)}</div>`);
+  const isntIt = `isn't that well ... ehr ... you know ...?`;
+  fooBar.is`That's me ${isntIt}`;
   log(
-    `<code>fooBar.truncate(8, { wordBoundary: true, html: true }).quot("[,]")</code>`,
-    `${toCode(`fooBar`)}: ${fooBar.truncate(8, {wordBoundary: true, html: true }).quot(`[,]`)}`);
-  const isntit = `isn't that well ... ehr ... you know ...?`;
-  fooBar.is`That's me ${isntit}`;
-  log(
-    `<code>const isntit = \`${isntit}\`</code>`,
-    `<code>fooBar.is\`thats me, \${isntit}\`</code>`,
-    `${toCode(`fooBar`)}: ${fooBar}`,
-    `<code>fooBar.slice(10).toUpperCase()</code>: ${printQuoted(fooBar.slice(10).toUpperCase())}`);
+    `${toCode("const isntit = `isn't that well ... ehr ... you know ...?`;\nfooBar.is`thats me, ${isntit}`", true)}
+     ${toCode(`fooBar`)}: ${fooBar}
+    <div>${toCode("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}`);
     
   const barFoo = fooBar.clone.slice(-13, -5);
   log(
     `!!<h3>Continue with a clone</h3>`,
-    toCode(`const barFoo = fooBar.clone.slice(-13, -5);`),
-    `${toCode(`barFoo`)}: ${printQuoted(barFoo)} (<code>fooBar</code> still: ${printQuoted(fooBar)})`);
-
-  barFoo.value = `I am barFoo, ${isntit}`;
-  log(
-    `<code>barFoo.value = \`I am barFoo, \${isntit}\`;</cod>`,
-    `${toCode(`barFoo`)}: ${printQuoted(barFoo)}`);
-  barFoo.slice(0, barFoo.indexOf(`ehr`));
-  log(
-    `<code>barFoo.slice(0, barFoo.indexOf(\`ehr\`));<code>`,
-    `${toCode(`barFoo`)}: ${barFoo.quot4Print()}`
+    `<div>${toCode(`const barFoo = fooBar.<i>clone</i>.slice(-13, -5);`)}: ${barFoo.quot4Print()}</div>
+     <div><code>fooBar</code> still: ${fooBar.quot4Print()}</div>`
   );
+
+  barFoo.value = `I am barFoo, ${isntIt}`;
   log(
-    `${toCode(`barFoo.initial`)} (<b>note</b>: the value after ${toCode(`fooBar.clone`)}): "${barFoo.initial}"`
+    `${toCode("barFoo.value = `I am barFoo, ${isntit}`;")}
+    <div>${toCode(`barFoo`)}: ${printQuoted(barFoo)}</div>`
+  );
+  
+  log(`${toCode("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
+    <div>${toCode(`barFoo.initial`)} (<b>note</b>: the value after ${toCode(`fooBar.clone`)}): "${barFoo.initial}"</div>`
   );
 
   log(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
@@ -80,8 +77,8 @@ const fooBar = $SB\`hello\`
   );
   fooBarred.value = 42;
   log(
-    `<code>fooBarred.value = 42;<code>`,
-    `${toCode(`fooBarred`)} (number converted to string): ${printQuoted(fooBarred)}`
+    `${toCode("fooBarred.value = 42;")}
+    <div>${toCode(`fooBarred`)}: ${fooBarred.quot4Print()} (numbers are converted to string)</div>`
   );
 
   log(`!!<h3>Additional case getters</h3>`);
@@ -181,7 +178,7 @@ function styleIt() {
   $.editCssRules(
     `table { display: inline-block; vertical-align: text-top; border-collapse: collapse; }`,
     `td, th { border: 1px solid #c0c0c0}; padding: 0 4px;`,
-    `#log2screen li div { font-family: 'gill sans', system-ui; }`,
+    `#log2screen li div { font-family: 'gill sans', system-ui; line-height: 1.4rem;}`,
     `code, div.local { font-family: roboto, monospace; }`,
     `.head div, .head p { font-weight: normal; padding-right: 2rem; }`,
     `.head h3 { margin-bottom: 0.3rem; }`,
