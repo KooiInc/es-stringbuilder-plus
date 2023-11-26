@@ -32,14 +32,12 @@ function createInstance(instanceValue) {
     lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
     toString() { return instanceValue; },
     valueOf() { return instanceValue; },
-    //at(pos) { return instanceValue.at(pos); },
-    //codePointAt(pos) { return instanceValue.codePointAt(pos); },
-    //charAt(pos) { return instanceValue.charAt(pos); },
-    prepend(str2Prepend, ...args) { instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
+    prepend(str2Prepend, ...args) {
+      instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
       instanceValue; return instance; },
     append(str2Append, ...args) {
-        instanceValue += str2Append.value || byContract(str2Append, ...args);
-        return instance; },
+      instanceValue += str2Append.value || byContract(str2Append, ...args);
+      return instance; },
     truncate(at, { html = false, wordBoundary = false } = {} ) {
       instanceValue = truncate(instanceValue, {at, html, wordBoundary});
       return instance; },
