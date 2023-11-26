@@ -33,7 +33,7 @@ function demo() {
   </div>`);
   print(`!!<h3>String builder examples</h3>`);
   const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
-  print(`${toCode(`import $SB from "./StringBuilderModule.js";
+  print(`${toCode(`import $SB from "[location of es-stringbuilder-plus module]";
 const fooBar = $SB\`hello\`
   .replace(\`hello\`, \`hell o \`)
   .repeat(3)
@@ -154,8 +154,7 @@ function testPerformance(n = 100_000) {
     <div>Created ${n.toLocaleString()} instances using ${toCode("$SB`hello world`.repeat(5).toUpperCase()")}
     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/instance, Σ ${
       sum.toLocaleString()} seconds</div>`;
-  str = undefined;
-
+  
   perf = performance.now();
   let something = $SB``;
   
@@ -169,7 +168,6 @@ function testPerformance(n = 100_000) {
     `<p>${n.toLocaleString()} times ${toCode("[instance].prepend(`hello `).append(`world`)")}
     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/operation, Σ ${
       sum2.toLocaleString()} seconds</p>`;
-  something = undefined;
   $.Popup.removeModal();
   $.Popup.show({content: result});
 }
