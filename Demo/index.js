@@ -74,14 +74,12 @@ const fooBar = $SB\`hello\`
   
   print(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
+  const fbCode = toCode(`fooBarred`);
   print(
-    `<code>const fooBarred = $SB({no: \`can do\`});<code>`,
-    `${toCode(`fooBarred`)} is an empty string (see console): ${fooBarred.quot4Print()}`
-  );
-  fooBarred.value = 42;
-  print(
-    `${toCode("fooBarred.value = 42;")}
-    <div>${toCode(`fooBarred`)}: ${fooBarred.quot4Print()} (numbers are converted to string)</div>`
+    `${toCode("const fooBarred = $SB({no: `can do`});")}
+    <div>${fbCode} is an empty string (see console) => ${fooBarred.quot4Print()}</div>
+    <div>${toCode("fooBarred.is(42);")}</div>
+    <div>${fbCode} => ${fooBarred.is(42).quot4Print()} (numbers are converted to string)</div>`
   );
   
   print(`!!<h3>Additional case getters</h3>`);
