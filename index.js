@@ -8,60 +8,66 @@ export default function StringBuilder(str, ...args) {
 };
 
 function createInstance(instanceValue) {
-  const instanceFunction = function() {};
   const initialValue = instanceValue;
-  const customMethods = {
+  const instance = Object.assign({
     get length() { return instanceValue.length; },
     get initial() { return initialValue; },
     get value() { return instanceValue; },
     set value(v) { instanceValue = v; },
-    get reset() { instanceValue = initialValue; return instanceFunction; },
-    get clear() { instanceValue = ``; return instanceFunction; },
-    get empty() { instanceValue = ``; return instanceFunction; },
+    get reset() { instanceValue = initialValue; return instance; },
+    get clear() { instanceValue = ``; return instance; },
+    get empty() { instanceValue = ``; return instance; },
     get clone() { return StringBuilder`${instanceValue}`; },
-    get toUpper() { instanceValue = instanceValue.toUpperCase(); return instanceFunction; },
-    get toLower() { instanceValue = instanceValue.toLowerCase(); return instanceFunction; },
-    get firstUp() { instanceValue = ucFirst(instanceValue); return instanceFunction; },
-    get wordsUp() { instanceValue = wordsFirstUp(instanceValue); return instanceFunction; },
-    get toDashed() { instanceValue = toDashedNotation(instanceValue); return instanceFunction; },
-    get toCamel() { instanceValue = toCamelcase(instanceValue); return instanceFunction; },
+    get toUpper() { instanceValue = instanceValue.toUpperCase(); return instance; },
+    get toLower() { instanceValue = instanceValue.toLowerCase(); return instance; },
+    get firstUp() { instanceValue = ucFirst(instanceValue); return instance; },
+    get wordsUp() { instanceValue = wordsFirstUp(instanceValue); return instance; },
+    get toDashed() { instanceValue = toDashedNotation(instanceValue); return instance; },
+    get toCamel() { instanceValue = toCamelcase(instanceValue); return instance; },
     quot4Print(quotes = `","`) { return quot(instanceValue, quotes); },
-    is(newValue, ...args) { instanceValue = byContract(newValue, ...args); return instanceFunction; },
-    quot(quotes = `"`) { instanceValue = quot(instanceValue, quotes); return instanceFunction; },
+    is(newValue, ...args) { instanceValue = byContract(newValue, ...args); return instance; },
+    quot(quotes = `"`) { instanceValue = quot(instanceValue, quotes); return instance; },
     indexOf(...args) { return indexOf(instanceValue, ...args); },
     lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
     toString() { return instanceValue; },
     valueOf() { return instanceValue; },
     at(pos) { return instanceValue.at(pos); },
+    codePointAt(pos) { return instanceValue.codePointAt(pos); },
     charAt(pos) { return instanceValue.charAt(pos); },
-    prepend(str2Prepend, ...args) { instanceValue = byContract(str2Prepend, args) + instanceValue; return instanceFunction; },
-    append(str2Append, ...args) { instanceValue += byContract(str2Append, ...args); return instanceFunction; },
+    prepend(str2Prepend, ...args) { instanceValue = byContract(str2Prepend, args) + instanceValue; return instance; },
+    append(str2Append, ...args) { instanceValue += byContract(str2Append, ...args); return instance; },
     truncate(at, { html = false, wordBoundary = false } = {} ) {
       instanceValue = truncate(instanceValue, {at, html, wordBoundary});
-      return instanceFunction; },
-    extract(start, end) { instanceValue = extract(instanceValue, start, end); return instanceFunction; },
-    remove(start, end) { instanceValue = remove(instanceValue, start, end); return instanceFunction; },
-    interpolate(...replacementTokens) { instanceValue = interpolate(instanceValue, ...replacementTokens); return instanceFunction; },
-  };
-  natives.forEach( key =>
-    instanceFunction[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
-      ? function(...args) {
-          instanceValue = instanceValue[key]?.(...args);
-          return instanceFunction; }
-      : function() {
-          instanceValue = instanceValue[key]?.();
-          return instanceFunction; } );
-  Object.entries(Object.getOwnPropertyDescriptors(customMethods))
-   .forEach(([key, value]) => Object.defineProperty(instanceFunction, key, value) );
-
-  return instanceFunction;
+      return instance; },
+    extract(start, end) { instanceValue = extract(instanceValue, start, end); return instance; },
+    remove(start, end) { instanceValue = remove(instanceValue, start, end); return instance; },
+    interpolate(...replacementTokens) {
+      instanceValue = interpolate(instanceValue, ...replacementTokens);
+      return instance; },
+  });
+  natives.chainable.forEach( key =>
+    instance[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
+      ? function(...args) { instanceValue = instanceValue[key]?.(...args); return instance; }
+      : function() { instanceValue = instanceValue[key]?.(); return instance; } );
+  natives.valueReturn.forEach( key => {
+    const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
+    if (!isFn) { return; }
+    instance[key] = isFn.length
+      ? function(...args) { return instanceValue[key]?.(...args); }
+      : function() { return instanceValue[key]?.(); }
+  });
+  
+  return instance;
 }
 
-function getDeprecated() {
-  // note: trimLeft/-Right are redundant
-  return `anchor,big,blink,bold,fixed,fontcolor,fontsize,italics,link,small,strike,sub,substr,sup,trimLeft,trimRight`
+function getExclusion() {
+  // note:
+  // trimLeft/-Right are redundant (use trimStart/-End),
+  // indexOf, lastIndexOf, at, codePointAt and charAt are overridden.
+  return `at,charAt,anchor,big,blink,bold,fixed,fontcolor,fontsize,italics,link,small,
+          codePointAt,strike,sub,substr,sup,trimLeft,trimRight,indexOf,lastIndexOf`
     .split(`,`)
-    .reduce( (acc, key) => ({...acc, [key]: true}), {});
+    .reduce( (acc, key) => ({...acc, [key.trim()]: true}), {});
 }
 
 function toCamelcase(str2Convert) {
@@ -81,14 +87,18 @@ function wordsFirstUp(str) {
 }
 
 function nativeStringMethods() {
-  const deprecated = getDeprecated();
+  const excluded = getExclusion();
   const checkReturnValue = (key, v) => v.value instanceof Function && typeof `abc`[key]() || `n/a`;
-  const allMethodsReturningAString = Object
+  const chainable = Object
     .entries(Object.getOwnPropertyDescriptors(String.prototype))
-    .filter( ([key, v]) => !deprecated[key] && checkReturnValue(key, v) === `string` )
+    .filter( ([key, v]) => !excluded[key] && checkReturnValue(key, v) === `string` )
+    .map( ([key,]) => key );
+  const valueReturn = Object
+    .entries(Object.getOwnPropertyDescriptors(String.prototype))
+    .filter( ([key, v]) => !excluded[key] && checkReturnValue(key, v) !== `string` )
     .map( ([key,]) => key );
 
-  return allMethodsReturningAString;
+  return { chainable, valueReturn }
 }
 
 function quot(str, chr = `","`) {
@@ -98,13 +108,11 @@ function quot(str, chr = `","`) {
 
 function truncate( str, {at, html = false, wordBoundary = false} = {} ) {
   if (str.length <= at) { return str; }
-  const subString = str.slice(at);
-  const endwith = html ? "&hellip;" : `...`;
-  const lastWordBoundary = [...subString.matchAll(/\b([\s'".,?!;:)\]])/g)]?.pop().index;
-  
-  return (wordBoundary
-    ? subString.slice(0, lastWordBoundary)
-    : subString) + endwith;
+  let subString = str.slice(0, at);
+  const endsWith = html ? "&hellip;" : `...`;
+  const lastWordBoundary = [...subString.matchAll(/\b([\s'".,?!;:)\]])/g)]?.pop()?.index;
+  subString = wordBoundary ? subString.slice(0, lastWordBoundary) : subString;
+  return subString + endsWith;
 }
 
 function extract(str, start, end) {
@@ -153,8 +161,8 @@ function descriptionsGetter() {
   const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
   const allProps = instanceProps
     .map( ([key, descr]) => {
-      // no natives
-      if (natives.find(nkey => key === nkey)) { return ``; }
+      const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
+      if (allNatives.find(nkey => key === nkey)) { return ``; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const fnString = String(descr.get ?? descr.value);
@@ -162,9 +170,9 @@ function descriptionsGetter() {
       if (descr.get) { props.push(`getter`); }
       if (descr.set) { props.push(`setter (mutates)`); }
       if (/instanceValue\s+?(=|\+=)/.test(fnString) || /empty|reset/.test(key)) { props.push(`mutates`); }
-      if (/return (mutableStringInstance|instanceFunction)/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
-      if (!props.length || /initial|length/i.test(key)) { props.push(`returns a value (not mutating)`); }
-      if (/indexof|valueof|tostring/i.test(key)) { props.push(`(native) override`)}
+      if (/return instance;/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
+      if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
+      if (/^(indexof|lastindexof|at|charat|codepointat)$/i.test(key)) { props.push(`(native) override`)}
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
     })
     .filter(v => v.length);
