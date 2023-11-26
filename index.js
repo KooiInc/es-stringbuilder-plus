@@ -25,7 +25,7 @@ function createInstance(instanceValue) {
     get toDashed() { instanceValue = toDashedNotation(instanceValue); return instance; },
     get toCamel() { instanceValue = toCamelcase(instanceValue); return instance; },
     quot4Print(quotes = `","`) { return quot(instanceValue, quotes); },
-    is(newValue, ...args) { instanceValue = byContract(newValue, ...args); return instance; },
+    is(newValue, ...args) { instanceValue = instanceValue.value ?? byContract(newValue, ...args); return instance; },
     quot(quotes = `"`) { instanceValue = quot(instanceValue, quotes); return instance; },
     indexOf(...args) { return indexOf(instanceValue, ...args); },
     lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
@@ -34,8 +34,11 @@ function createInstance(instanceValue) {
     at(pos) { return instanceValue.at(pos); },
     codePointAt(pos) { return instanceValue.codePointAt(pos); },
     charAt(pos) { return instanceValue.charAt(pos); },
-    prepend(str2Prepend, ...args) { instanceValue = byContract(str2Prepend, args) + instanceValue; return instance; },
-    append(str2Append, ...args) { instanceValue += byContract(str2Append, ...args); return instance; },
+    prepend(str2Prepend, ...args) { instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
+      instanceValue; return instance; },
+    append(str2Append, ...args) {
+        instanceValue += str2Append.value || byContract(str2Append, ...args);
+        return instance; },
     truncate(at, { html = false, wordBoundary = false } = {} ) {
       instanceValue = truncate(instanceValue, {at, html, wordBoundary});
       return instance; },
