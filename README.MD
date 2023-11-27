@@ -3,7 +3,8 @@
 `es-stringbuilder-plus` delivers a way to build a string (actually 
 a wrapped `String` instance delivering a <i>mutable</i> string value).
 
-Instances can use native String methods and a number of custom methods to change their internal value without the need for re-assigning.
+Instances can use native String methods and a number of custom methods to change 
+their internal value without the need for re-assigning.
 
 <b>ECMAScript (ES) string builder PLUS</b> is programmed in a 
 [class free object oriented](https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming) way.
@@ -23,6 +24,10 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
   [tagged template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates)
   (e.g ``$SB`some string` ``). It can only receive a String or a Number. Any other parameter type will result in an instance 
   with an empty string as its value.
+- ES String Builder PLUS is a lightweight stand alone module. We also have the more comprehensive [es-string-fiddler](https://github.com/KooiInc/es-string-fiddler) 
+  module available. 
+  That module delivers more functionality, e.g. methods to sanitize HTML strings, create Regular Expressions
+  from multiline strings and extend the constructor with ones own custom methods.
 - In the following the *custom* getters and methods of an instance are described. 
   - With 'value' the current value of a string builder instance is meant.
   - Value changing (mutating) getters and methods of an instance and the results of native String method calls are 'chainable'.
