@@ -41,7 +41,6 @@ function createInstance(instanceValue) {
     truncate(at, { html = false, wordBoundary = false } = {} ) {
       instanceValue = truncate(instanceValue, {at, html, wordBoundary});
       return instance; },
-    extract(start, end) { instanceValue = extract(instanceValue, start, end); return instance; },
     remove(start, end) { instanceValue = remove(instanceValue, start, end); return instance; },
     interpolate(...replacementTokens) {
       instanceValue = interpolate(instanceValue, ...replacementTokens);
