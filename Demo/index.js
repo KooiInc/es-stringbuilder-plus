@@ -52,11 +52,11 @@ const fooBar = $SB\`hello\`
      ${toCode(`fooBar`)}: ${fooBar}
     <div>${toCode("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}`);
   
-  const barFoo = fooBar.clone.extract(-13, fooBar.lastIndexOf(`...`)-1).append(`?`);
+  const barFoo = fooBar.clone.slice(-13, fooBar.lastIndexOf(`...`)-1).append(`?`);
   print(
     `!!<h3>Continue with a clone</h3>`,
     `<div>${
-      toCode(`const barFoo = fooBar.<i>clone</i>.extract(-13, fooBar.lastIndexOf(\`...\`) - 1).append(\`?\`);`)}
+      toCode(`const barFoo = fooBar.<i>clone</i>.slice(-13, fooBar.lastIndexOf(\`...\`) - 1).append(\`?\`);`)}
      <br>${toCode(`barFoo`)} => ${barFoo.quot4Print()}</div>
      <div><code>fooBar</code> still: ${fooBar.quot4Print()}</div>`
   );
