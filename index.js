@@ -17,8 +17,8 @@ function StringBuilder(str, ...args) {
 function reRouteNatives(instance, values) {
   natives.chainable.forEach( key =>
     instance[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
-      ? function(...args) { values.instanceValue = values.instanceValue[key]?.(...args); return instance; }
-      : function() { values.instanceValue = values.instanceValue[key]?.(); return instance; } );
+      ? function(...args) { return instance.is(values.instanceValue[key]?.(...args)); }
+      : function() { return instance.is(values.instanceValue[key]?.()); } );
   natives.valueReturn.forEach( key => {
     const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
     if (!isFn) { return; }
@@ -32,40 +32,36 @@ function reRouteNatives(instance, values) {
 
 function instantiate(values) {
   const instance = {
-    get length() { return values.instanceValue.length; },
+    get length() { return instance.value.length; },
     get initial() { return values.initialValue; },
     get value() { return values.instanceValue; },
-    set value(v) { values.instanceValue = v; },
-    get reset() { values.instanceValue = values.initialValue; return instance; },
-    get clear() { values.instanceValue = ``; return instance; },
-    get empty() { values.instanceValue = ``; return instance; },
-    get clone() { return StringBuilder`${values.instanceValue}`; },
-    get toUpper() { values.instanceValue = values.instanceValue.toUpperCase(); return instance; },
-    get toLower() { values.instanceValue = values.instanceValue.toLowerCase(); return instance; },
-    get firstUp() { values.instanceValue = ucFirst(values.instanceValue); return instance; },
-    get wordsUp() { values.instanceValue = wordsFirstUp(values.instanceValue); return instance; },
-    get toDashed() { values.instanceValue = toDashedNotation(values.instanceValue); return instance; },
-    get toCamel() { values.instanceValue = toCamelcase(values.instanceValue); return instance; },
-    quot4Print(quotes = `","`) { return quot(values.instanceValue, quotes); },
-    is(newValue, ...args) { values.instanceValue = values.instanceValue.value ?? byContract(newValue, ...args); return instance; },
-    quot(quotes = `"`) { values.instanceValue = quot(values.instanceValue, quotes); return instance; },
-    indexOf(...args) { return indexOf(values.instanceValue, ...args); },
-    lastIndexOf(...args) { return lastIndexOf(values.instanceValue, ...args); },
-    toString() { return values.instanceValue; },
-    valueOf() { return values.instanceValue; },
+    set value(v) { instance.is(v); },
+    get reset() { return instance.is(values.initialValue); },
+    get clear() { return instance.is(``); },
+    get empty() { return instance.is(``); },
+    get clone() { return StringBuilder`${instance.value}`; },
+    get toUpper() { return instance.is(instance.value.toUpperCase()); },
+    get toLower() { return instance.is(instance.value.toLowerCase()); },
+    get firstUp() { return instance.is(ucFirst(instance.value)); },
+    get wordsUp() { return instance.is(wordsFirstUp(instance.value)); },
+    get toDashed() { return instance.is(toDashedNotation(instance.value)); },
+    get toCamel() { return instance.is(toCamelcase(instance.value)); },
+    quot4Print(quotes = `","`) { return quot(instance.value, quotes); },
+    is(newValue, ...args) { values.instanceValue = byContract(newValue, ...args) ?? instance.value; return instance; },
+    quot(quotes = `"`) { return instance.is(quot(instance.value, quotes)); },
+    surroundWith({l = ``, r = ``} = {}) { return instance.is(quot(instance.value, l.concat(`,${r}`))); },
+    indexOf(...args) { return indexOf(instance.value, ...args); },
+    lastIndexOf(...args) { return lastIndexOf(instance.value, ...args); },
+    toString() { return instance.value; },
+    valueOf() { return instance.value; },
     prepend(str2Prepend, ...args) {
-      values.instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
-        values.instanceValue; return instance; },
+      return instance.is( (str2Prepend.value ?? byContract(str2Prepend, args)).concat(instance.value) ); },
     append(str2Append, ...args) {
-      values.instanceValue += str2Append.value ?? byContract(str2Append, ...args);
-      return instance; },
+      return instance.is(instance.value.concat(str2Append.value ?? byContract(str2Append, ...args)) ); },
     truncate(at, { html = false, wordBoundary = false } = {} ) {
-      values.instanceValue = truncate(values.instanceValue, {at, html, wordBoundary});
-      return instance; },
-    remove(start, end) { values.instanceValue = remove(values.instanceValue, start, end); return instance; },
-    interpolate(...replacementTokens) {
-      values.instanceValue = interpolate(values.instanceValue, ...replacementTokens);
-      return instance; },
+      return instance.is(truncate(instance.value, {at, html, wordBoundary})); },
+    remove(start, end) { return instance.is(remove(instance.value, start, end)); },
+    interpolate(...replacementTokens) { return instance.is(interpolate(instance.value, ...replacementTokens)); },
   };
   
   Object.entries(Object.getOwnPropertyDescriptors(userExtensions))
@@ -73,8 +69,9 @@ function instantiate(values) {
         const getOrValue = meth.value.length === 1 ? `get` : `value`;
         Object.defineProperty( instance, key, { [getOrValue]: (...args) => {
             const nwValue = meth.value(instance, ...args);
-            values.instanceValue = nwValue?.value ?? nwValue;
-            return instance;  } } );
+            return instance.is(nwValue?.value ?? nwValue);
+          }
+        } );
       }
     );
   
@@ -180,12 +177,12 @@ function descriptionsGetter(full = false) {
       if (!full && allNatives.find(nkey => key === nkey)) { return ``; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
-      const fnString = String(descr.get ?? descr.value);
+      const fnString = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `);
       const argsClause = isMethod ? descr.value.toString().match(/(\(.+?\))/)?.shift() ?? `()` : ``;
       if (descr.get) { props.push(`getter`); }
       if (descr.set) { props.push(`setter (mutates)`); }
-      if (/instanceValue\s+?(=|\+=)/.test(fnString) || /empty|reset/.test(key)) { props.push(`mutates`); }
-      if (/return instance;/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
+      if (/return instance\.is|\=>.+instance\.is/.test(fnString) || /empty|reset|is/.test(key)) { props.push(`mutates`); }
+      if (/return instance/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
       if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
       if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`)}
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
