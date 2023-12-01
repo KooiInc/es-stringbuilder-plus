@@ -1,18 +1,25 @@
 import $SB from "../index.js";
-
+$SB.addExtension(`code`, (instance, str, ...args) =>
+  instance
+    .is(str ?? instance.value, ...args)
+    .quot(`<code>,</code>`));
+$SB.addExtension(`codeBlock`, (instance, str, ...args) =>
+  instance
+    .is(str ?? instance.value, ...args)
+    .quot(`<code class="codeblock">,</code>`));
+window.$SB = $SB; // use in console for testing
 const {logFactory, $} = await import("./sbHelpers.bundled.js");
 const { log: print, } = logFactory();
 const printQuoted = str => `"${str}"`;
-const toCode = (str, block) => `<code${block ? ` class="codeblock"` : ``}>${str}</code>`;
 const escHtml = str => str.replace(/</g, `&lt;`);
 const spacer = _ => print(`!!<p>&nbsp;</p>`);
 console.clear();
 print(`!!<a target="_top" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>Back to repository</b></a>`)
+const $c = $SB``;
 demo();
 
 function demo() {
-  window.$SB = $SB; // use in console
-  const header = $SB`!!<h2>ES stringbuilder PLUS</h2>`
+  const header = $SB`!!<h2>ES Stringbuilder PLUS</h2>`
     .append`<div class="q">
       In many other languages, a programmer can choose to explicitly use a string view or a
       string builder where they really need them. But JS has the programmer either hoping the
@@ -31,66 +38,80 @@ function demo() {
         >class free object oriented</a> way.
     </p>`;
   print(header.value);
-  print(`!!<h3>String builder examples</h3>`);
+  print(`!!<h3>Initialization</h3>
+  <div>Import the constructor from the library location. Here it's imported as ${$c.code`$SB`}.</div>
+  <div>The constructor enables creating ones own extension methods, syntax:<br>&nbsp;&nbsp;${
+    $c.code(`$SB.addExtension(name: string, function(instance, [...arguments]) {...}): function)`)}.
+    <br>For this demo two extra methods are added to display bits of code as ${
+    $c.code(`&lt;code>`)}-elements</div>`);
   const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
-  print(`${toCode(`import $SB from "[location of es-stringbuilder-plus module]";
+  print($c.codeBlock`import $SB from "[location of es-stringbuilder-plus module]";
+$SB.<i class="red">addExtension</i>(\`code\`, (instance, str, ...args) =>
+  instance
+    .is(str ?? instance.value, ...args)
+    .quot(\`&lt;code>,&lt;/code>\`));
+$SB.<i class="red">addExtension</i>(\`codeBlock\`, (instance, str, ...args) =>
+  instance
+    .is(str ?? instance.value, ...args)
+    .quot(\`&lt;code class="codeblock">,&lt;/code>\`));
+
 const fooBar = $SB\`hello\`
   .replace(\`hello\`, \`hell o \`)
   .repeat(3)
-  .firstUp;`, true)}
-  <div>${toCode(`fooBar`)}: ${printQuoted(fooBar)}</div>
-  <div>${toCode(`fooBar.length`)}: ${fooBar.length}</div>
-  <div>${toCode(`fooBar.at(0)`)} => ${printQuoted(fooBar.at(0))}</div>`);
+  .firstUp;`.value,
+    `<div>${$c.code`fooBar`}: ${printQuoted(fooBar)}</div>
+   <div>${$c.code`fooBar.length`}: ${fooBar.length}</div>
+   <div>${$c.code`fooBar.at(0)`} => ${printQuoted(fooBar.at(0))}</div>`);
   
   print(
-    `<code>fooBar.truncate(8, { wordBoundary: true, html: true }).quot("[,]")</code>
-     <div>${toCode(`fooBar`)}: ${fooBar.truncate(8, {wordBoundary: true, html: true }).quot(`[,]`)}</div>`);
+    `${$c.code`fooBar.truncate(8, { wordBoundary: true, html: true }).quot("[,]")`}
+     <div>${$c.code`fooBar`}: ${fooBar.truncate(8, {wordBoundary: true, html: true }).quot(`[,]`)}</div>`);
   const isntIt = `isn't that well ... ehr ... you know ...?`;
   fooBar.is`That's me ${isntIt}`;
   print(
-    `${toCode("const isntit = `isn't that well ... ehr ... you know ...?`;\nfooBar.is`thats me, ${isntit}`", true)}
-     ${toCode(`fooBar`)}: ${fooBar}
-    <div>${toCode("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}`);
+    `${$c.codeBlock("const isntit = `isn't that well ... ehr ... you know ...?`;\nfooBar.is`thats me, \${isntit}`")}
+     ${$c.code`fooBar`}: ${fooBar}
+    <div>${$c.code("fooBar.slice(10).toUpperCase()")}: ${fooBar.slice(10).toUpperCase()}</div>`);
   
   const barFoo = fooBar.clone.slice(-13, fooBar.lastIndexOf(`...`)-1).append(`?`);
   print(
     `!!<h3>Continue with a clone</h3>`,
     `<div>${
-      toCode(`const barFoo = fooBar.<i>clone</i>.slice(-13, fooBar.lastIndexOf(\`...\`) - 1).append(\`?\`);`)}
-     <br>${toCode(`barFoo`)} => ${barFoo.quot4Print()}</div>
-     <div><code>fooBar</code> still: ${fooBar.quot4Print()}</div>`
+      $c.code`const barFoo = fooBar.<i class="red">clone</i>.slice(-13, fooBar.lastIndexOf(\`...\`) - 1).append(\`?\`);`}
+     <br>${$c.code`barFoo`} => ${barFoo.quot4Print()}</div>
+     <div>${$c.code`fooBar`} still: ${fooBar.quot4Print()}</div>`
   );
   
   barFoo.value = `I am barFoo, ${isntIt}`;
   print(
-    `${toCode("barFoo.value = `I am barFoo, ${isntit}`;")}
-    <div>${toCode(`barFoo`)}: ${printQuoted(barFoo)}</div>`
+    `${$c.code("barFoo.value = `I am barFoo, ${isntit}`;")}
+    <div>${$c.code(`barFoo`)}: ${printQuoted(barFoo)}</div>`
   );
   
-  print(`${toCode("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
-    <div>${toCode(`barFoo.initial`)} "${barFoo.initial}"<br>
-    <b>Note</b>: ${toCode(`barFoo.initial`)} is the value from <i>directly after</i> ${toCode(`fooBar.clone`)}</div>`
+  print(`${$c.code("barFoo.slice(0, barFoo.indexOf(`ehr`))")}: ${barFoo.slice(0, barFoo.indexOf(`ehr`)).quot4Print()}
+    <div>${$c.code(`barFoo.initial`)} "${barFoo.initial}"<br>
+    <b>Note</b>: ${$c.code(`barFoo.initial`)} is the value from <i>directly after</i> ${$c.code(`fooBar.clone`)}</div>`
   );
   
   print(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
-  const fbCode = toCode(`fooBarred`);
+  const fbCode = $c.code(`fooBarred`);
   print(
-    `${toCode("const fooBarred = $SB({no: `can do`});")}
+    `${$c.code("const fooBarred = $SB({no: `can do`});")}
     <div>${fbCode} is an empty string (see console) => ${fooBarred.quot4Print()}</div>
-    <div>${toCode("fooBarred.is(42);")}</div>
+    <div>${$c.code("fooBarred.is(42);")}</div>
     <div>${fbCode} => ${fooBarred.is(42).quot4Print()} (numbers are converted to string)</div>`
   );
   
   print(`!!<h3>Additional case getters</h3>`);
   const lorem = $SB`lorem ipsum dolor sit amet`;
   const lorem2 = lorem.clone.toLowerCase().wordsUp.replace(/\s/g, ``).toDashed;
-  print(`${toCode("$SB`lorem ipsum dolor sit amet`.toUpper")} => ${lorem.toUpper.quot4Print()}`);
-  print(`${toCode("$SB`LOREM IPSUM DOLOR SIT AMET`.toLower")} => ${lorem.toLower.quot4Print()}`);
-  print(`${toCode("$SB`lorem ipsum dolor sit amet`.firstUp")} => ${lorem.firstUp.quot4Print()}`);
-  print(`${toCode("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
-  print(`${toCode("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
-  print(`${toCode("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
+  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.toUpper")} => ${lorem.toUpper.quot4Print()}`);
+  print(`${$c.code("$SB`LOREM IPSUM DOLOR SIT AMET`.toLower")} => ${lorem.toLower.quot4Print()}`);
+  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.firstUp")} => ${lorem.firstUp.quot4Print()}`);
+  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
+  print(`${$c.code("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
+  print(`${$c.code("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
   
   print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
@@ -111,8 +132,9 @@ const fooBar = $SB\`hello\`
   ( { row: ${escHtml(`\`<tr><td>#\${i+1}</td><td>cell \${
       i+1}.1</td><td>cell \${i+1}.2</td></tr>\``)} } );`;
   print(
-    toCode(`${repY}<br>${repX}`, true),
-    `${toCode(`tbl`)} =&gt; ${tbl}`);
+    `${$c.codeBlock`${repY}<br>${repX}`}
+     ${$c.code(`tbl`)} =&gt; ${tbl}`);
+  
   
   print(`!!<h3>Available custom getters and methods of a $SB instance</h3>
       <div>These are the 'extensions' one can use for a $SB instance.
@@ -120,7 +142,7 @@ const fooBar = $SB\`hello\`
       <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"
       >String methods</a>. The result of these native methods can mostly be
       <a target="_blank" href="https://www.geeksforgeeks.org/method-chaining-in-javascript/">chained</a>.</div>`,
-    `${toCode("$SB.describe")} =>
+    `<code>$SB.describe</code> =>
      <div class="local">${describe2HTML()}</div>`);
   
   styleIt();
@@ -136,23 +158,24 @@ const fooBar = $SB\`hello\`
 }
 
 function describe2HTML() {
-  return `<ul class="sub"><li>${$SB.describe.map( v => {
-    const [key, descr] = v.split(`[`);
-    return `<code>${key.trim()}</code> [${descr}`;
-  } ).join(`</li><li>`)}</li>`;
+  const descriptions = $SB.describe.map( v => {
+      const [key, descr] = v.split(`[`);
+      return $c.code(`${key.trim()}`).append(` [${descr}`).value;
+    }
+  );
+  return $SB`<li>${descriptions.join(`</li><li>`)}</li>`.quot(`<ul class="sub">,</ul`);
 }
 
 function testPerformance(n = 100_000) {
   let perf = performance.now();
-  let str;
   for (let i = 0; i < n; i += 1) {
-    str = $SB`hello world`.repeat(5).toUpperCase();
+    $SB`hello world`.repeat(5).toUpperCase();
   }
   
   perf = performance.now() - perf;
   const sum = +(perf/1000).toFixed(3);
   let result = `<b>Performance</b>
-    <div>Created ${n.toLocaleString()} instances using ${toCode("$SB`hello world`.repeat(5).toUpperCase()")}
+    <div>Created ${n.toLocaleString()} instances using ${$c.code("$SB`hello world`.repeat(5).toUpperCase()")}
     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/instance, Σ ${
     sum.toLocaleString()} seconds</div>`;
   
@@ -166,8 +189,8 @@ function testPerformance(n = 100_000) {
   perf = performance.now() - perf;
   const sum2 = +(perf/1000).toFixed(3);
   result +=
-    `<p>${n.toLocaleString()} times ${toCode("[instance].prepend(`hello `).append(`world`)")}
-    <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/operation, Σ ${
+    `<p>${n.toLocaleString()} times ${$c.code("[instance].prepend(`hello `).append(`world`)")}
+     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/operation, Σ ${
       sum2.toLocaleString()} seconds</p>`;
   $.Popup.removeModal();
   $.Popup.show({content: result});
@@ -195,6 +218,7 @@ function styleIt() {
       margin-left: -2rem;
       margin-top: 0.5rem;
      }`,
+    `i.red {color: red}`,
     `div.q::after {
       font-family: Georgia, verdana;
       content: '\\201D';

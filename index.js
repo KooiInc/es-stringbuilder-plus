@@ -1,70 +1,90 @@
 const natives =  nativeStringMethods();
 const interpolate = interpolateFactory();
+const userExtensions = {};
 
 Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
 Object.defineProperty(StringBuilder, `describeAll`, { get() { return descriptionsGetter(true); } });
+Object.defineProperty(StringBuilder, `addExtension`, {value: (name, fn) => userExtensions[name] = fn});
 
-export default function StringBuilder(str, ...args) {
-  return Object.freeze(createInstance(byContract(str, ...args)));
-};
+export default StringBuilder;
 
-function createInstance(instanceValue) {
-  const initialValue = instanceValue;
-  const instance = Object.assign({
-    get length() { return instanceValue.length; },
-    get initial() { return initialValue; },
-    get value() { return instanceValue; },
-    set value(v) { instanceValue = v; },
-    get reset() { instanceValue = initialValue; return instance; },
-    get clear() { instanceValue = ``; return instance; },
-    get empty() { instanceValue = ``; return instance; },
-    get clone() { return StringBuilder`${instanceValue}`; },
-    get toUpper() { instanceValue = instanceValue.toUpperCase(); return instance; },
-    get toLower() { instanceValue = instanceValue.toLowerCase(); return instance; },
-    get firstUp() { instanceValue = ucFirst(instanceValue); return instance; },
-    get wordsUp() { instanceValue = wordsFirstUp(instanceValue); return instance; },
-    get toDashed() { instanceValue = toDashedNotation(instanceValue); return instance; },
-    get toCamel() { instanceValue = toCamelcase(instanceValue); return instance; },
-    quot4Print(quotes = `","`) { return quot(instanceValue, quotes); },
-    is(newValue, ...args) { instanceValue = instanceValue.value ?? byContract(newValue, ...args); return instance; },
-    quot(quotes = `"`) { instanceValue = quot(instanceValue, quotes); return instance; },
-    indexOf(...args) { return indexOf(instanceValue, ...args); },
-    lastIndexOf(...args) { return lastIndexOf(instanceValue, ...args); },
-    toString() { return instanceValue; },
-    valueOf() { return instanceValue; },
-    prepend(str2Prepend, ...args) {
-      instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
-      instanceValue; return instance; },
-    append(str2Append, ...args) {
-      instanceValue += str2Append.value || byContract(str2Append, ...args);
-      return instance; },
-    truncate(at, { html = false, wordBoundary = false } = {} ) {
-      instanceValue = truncate(instanceValue, {at, html, wordBoundary});
-      return instance; },
-    remove(start, end) { instanceValue = remove(instanceValue, start, end); return instance; },
-    interpolate(...replacementTokens) {
-      instanceValue = interpolate(instanceValue, ...replacementTokens);
-      return instance; },
-  });
+function StringBuilder(str, ...args) {
+  const instanceValue = byContract(str, ...args);
+  const values = {initial: instanceValue, instanceValue,};
+  return Object.freeze(instantiate(values));
+}
+
+function reRouteNatives(instance, values) {
   natives.chainable.forEach( key =>
     instance[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
-      ? function(...args) { instanceValue = instanceValue[key]?.(...args); return instance; }
-      : function() { instanceValue = instanceValue[key]?.(); return instance; } );
+      ? function(...args) { values.instanceValue = values.instanceValue[key]?.(...args); return instance; }
+      : function() { values.instanceValue = values.instanceValue[key]?.(); return instance; } );
   natives.valueReturn.forEach( key => {
     const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
     if (!isFn) { return; }
     instance[key] = isFn.length
-      ? function(...args) { return instanceValue[key]?.(...args); }
-      : function() { return instanceValue[key]?.(); }
+      ? function(...args) { return values.instanceValue[key]?.(...args); }
+      : function() { return values.instanceValue[key]?.(); }
   });
   
   return instance;
 }
 
+function instantiate(values) {
+  const instance = {
+    get length() { return values.instanceValue.length; },
+    get initial() { return values.initialValue; },
+    get value() { return values.instanceValue; },
+    set value(v) { values.instanceValue = v; },
+    get reset() { values.instanceValue = values.initialValue; return instance; },
+    get clear() { values.instanceValue = ``; return instance; },
+    get empty() { values.instanceValue = ``; return instance; },
+    get clone() { return StringBuilder`${values.instanceValue}`; },
+    get toUpper() { values.instanceValue = values.instanceValue.toUpperCase(); return instance; },
+    get toLower() { values.instanceValue = values.instanceValue.toLowerCase(); return instance; },
+    get firstUp() { values.instanceValue = ucFirst(values.instanceValue); return instance; },
+    get wordsUp() { values.instanceValue = wordsFirstUp(values.instanceValue); return instance; },
+    get toDashed() { values.instanceValue = toDashedNotation(values.instanceValue); return instance; },
+    get toCamel() { values.instanceValue = toCamelcase(values.instanceValue); return instance; },
+    quot4Print(quotes = `","`) { return quot(values.instanceValue, quotes); },
+    is(newValue, ...args) { values.instanceValue = values.instanceValue.value ?? byContract(newValue, ...args); return instance; },
+    quot(quotes = `"`) { values.instanceValue = quot(values.instanceValue, quotes); return instance; },
+    indexOf(...args) { return indexOf(values.instanceValue, ...args); },
+    lastIndexOf(...args) { return lastIndexOf(values.instanceValue, ...args); },
+    toString() { return values.instanceValue; },
+    valueOf() { return values.instanceValue; },
+    prepend(str2Prepend, ...args) {
+      values.instanceValue = (str2Prepend.value ?? byContract(str2Prepend, args)) +
+        values.instanceValue; return instance; },
+    append(str2Append, ...args) {
+      values.instanceValue += str2Append.value ?? byContract(str2Append, ...args);
+      return instance; },
+    truncate(at, { html = false, wordBoundary = false } = {} ) {
+      values.instanceValue = truncate(values.instanceValue, {at, html, wordBoundary});
+      return instance; },
+    remove(start, end) { values.instanceValue = remove(values.instanceValue, start, end); return instance; },
+    interpolate(...replacementTokens) {
+      values.instanceValue = interpolate(values.instanceValue, ...replacementTokens);
+      return instance; },
+  };
+  
+  Object.entries(Object.getOwnPropertyDescriptors(userExtensions))
+    .forEach( ([key, meth]) => {
+        const getOrValue = meth.value.length === 1 ? `get` : `value`;
+        Object.defineProperty( instance, key, { [getOrValue]: (...args) => {
+            const nwValue = meth.value(instance, ...args);
+            values.instanceValue = nwValue?.value ?? nwValue;
+            return instance;  } } );
+      }
+    );
+  
+  return reRouteNatives(instance, values);
+}
+
 function getExclusion() {
-  // note:
-  // trimLeft/-Right are redundant (use trimStart/-End),
-  // indexOf and lastIndexOf are overridden.
+  // notes:
+  // - trimLeft/-Right are redundant (use trimStart/-End),
+  // - indexOf and lastIndexOf are overridden.
   return `anchor,big,blink,bold,fixed,fontcolor,fontsize,italics,link,small,
           strike,sub,substr,sup,trimLeft,trimRight,indexOf,lastIndexOf`
     .split(`,`)
@@ -73,10 +93,10 @@ function getExclusion() {
 
 function toCamelcase(str2Convert) {
   return str2Convert.toLowerCase()
-  .trim()
-  .split(/[- ]/)
-  .map( (str, i) => i && `${ucFirst(str)}` || str )
-  .join(``);
+    .trim()
+    .split(/[- ]/)
+    .map( (str, i) => i && `${ucFirst(str)}` || str )
+    .join(``);
 }
 
 function toDashedNotation(str2Convert) {
@@ -101,7 +121,7 @@ function nativeStringMethods() {
     .filter( ([key, v]) =>
       !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
     .map( ([key,]) => key );
-
+  
   return { chainable, valueReturn }
 }
 
@@ -119,10 +139,6 @@ function truncate( str, {at, html = false, wordBoundary = false} = {} ) {
   return subString + endsWith;
 }
 
-function extract(str, start, end) {
-  return str.slice(start || 0, end || str.length);
-}
-
 function remove(str, start, end) {
   const toRemove = str.slice(start || 0, end || str.length);
   return str.replace(toRemove, ``);
@@ -130,13 +146,13 @@ function remove(str, start, end) {
 
 function isStringOrTemplate(str) {
   str = str?.constructor === Number ? String(str) : str;
-  return str?.isProxied || str?.constructor === String || str?.raw;
+  return str?.constructor === String || str?.raw;
 }
 
 function byContract(str, ...args) {
   const isMet = isStringOrTemplate(str);
   if (!isMet) { console.info(`✘ String contract not met: input [${String(str)?.slice(0, 15)
-    }] not a (template) string or number`) };
+  }] not a (template) string or number`) }
   return !isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``;
 }
 
@@ -145,16 +161,11 @@ function byContract(str, ...args) {
 function indexOf(str, findMe, fromIndex) {
   const index = str.indexOf(findMe, fromIndex);
   return index < 0 ? undefined : index;
-};
+}
 
 function lastIndexOf(str, findMe, beforeIndex) {
   const index = str.lastIndexOf(findMe, beforeIndex);
   return index < 0 ? undefined : index;
-};
-
-function nthIndexOf(str, nth, findMe) {
-  const allMatches = str.matchAll(findMe);
-  return [...allMatches]?.find((_, i) => i + 1 === nth)?.index;
 }
 
 function ucFirst([first, ...theRest]) {
