@@ -174,20 +174,21 @@ function descriptionsGetter(full = false) {
   const allProps = instanceProps
     .map( ([key, descr]) => {
       const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
-      if (!full && allNatives.find(nkey => key === nkey)) { return ``; }
+      if (!full && allNatives.find(nkey => key === nkey)) { return undefined; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const fnString = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `);
       const argsClause = isMethod ? descr.value.toString().match(/(\(.+?\))/)?.shift() ?? `()` : ``;
+      const isChainable = /return instance\.is\(|\=>.+instance\.is\(/.test(fnString);
       if (descr.get) { props.push(`getter`); }
       if (descr.set) { props.push(`setter (mutates)`); }
-      if (/return instance\.is|\=>.+instance\.is/.test(fnString) || /empty|reset|is/.test(key)) { props.push(`mutates`); }
-      if (/return instance[^\.value]/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
+      if (isChainable || /empty|reset|is/.test(key)) { props.push(`mutates`); }
+      if (isChainable || key === `clone`)  { props.push(`chainable`); }
       if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
       if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`)}
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
     })
-    .filter(v => v.length);
+    .filter(v => v);
   return allProps.sort( (a, b) => a.localeCompare(b));
 }
 
