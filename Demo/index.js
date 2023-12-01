@@ -1,12 +1,8 @@
 import $SB from "../index.js";
 $SB.addExtension(`code`, (instance, str, ...args) =>
-  instance
-    .is(str ?? instance.value, ...args)
-    .quot(`<code>,</code>`));
+  instance.is(str ?? instance.value, ...args).surroundWith({l: `<code>`, r: `</code>`}));
 $SB.addExtension(`codeBlock`, (instance, str, ...args) =>
-  instance
-    .is(str ?? instance.value, ...args)
-    .quot(`<code class="codeblock">,</code>`));
+  instance.is(str ?? instance.value, ...args).surroundWith({l: `<code class="codeblock">`, r: `</code>` }));
 window.$SB = $SB; // use in console for testing
 const {logFactory, $} = await import("./sbHelpers.bundled.js");
 const { log: print, } = logFactory();
@@ -49,11 +45,11 @@ function demo() {
 $SB.<i class="red">addExtension</i>(\`code\`, (instance, str, ...args) =>
   instance
     .is(str ?? instance.value, ...args)
-    .quot(\`&lt;code>,&lt;/code>\`));
+    .surroundWith({l: \`&lt;code>\`, r: \`&lt;/code>\`}));
 $SB.<i class="red">addExtension</i>(\`codeBlock\`, (instance, str, ...args) =>
   instance
     .is(str ?? instance.value, ...args)
-    .quot(\`&lt;code class="codeblock">,&lt;/code>\`));
+    .surroundWith({l: \`&lt;code class="codeblock">\`, r: \`&lt;/code>\`}));
 
 const fooBar = $SB\`hello\`
   .replace(\`hello\`, \`hell o \`)
