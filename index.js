@@ -182,7 +182,7 @@ function descriptionsGetter(full = false) {
       if (descr.get) { props.push(`getter`); }
       if (descr.set) { props.push(`setter (mutates)`); }
       if (/return instance\.is|\=>.+instance\.is/.test(fnString) || /empty|reset|is/.test(key)) { props.push(`mutates`); }
-      if (/return instance/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
+      if (/return instance[^\.value]/.test(fnString) || key === `clone`)  { props.push(`chainable`); }
       if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
       if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`)}
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
