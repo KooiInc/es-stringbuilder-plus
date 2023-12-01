@@ -32,7 +32,20 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
   - With 'value' the current value of a string builder instance is meant.
   - Value changing (mutating) getters and methods of an instance and the results of native String method calls are 'chainable'.
   - [Chainable](https://www.geeksforgeeks.org/method-chaining-in-javascript/) means the result can be followed by a new getter-/method-call (e.g. `[instance].toUpperCase().quot("[,]")`).
-  
+- The constructor enables creating user defined extensions, using `[constructor].addExtension`. 
+  - syntax: `[constructor]..addExtension(name: string, function(me: instance, [...arguments]) {...}): function)`     
+    when `...arguments` is empty, the extension will be a getter. Otherwise it will be a method. The first parameter
+    is the instance to apply the extension function to. It is obligatory and must always be the first argument of 
+    the extension function. The return value of the extension function may be a string or the (modified) instance. 
+    A user defined extension is always chainable.
+  - example 1 (`$SB` is the constructor):  
+    ``$SB.addExtension(`sayOk`, me => instance.prepend(`*OK* `));``  
+    `sayOk` is now a getter
+    ``const test = $SB`test123`.sayOk`` => `test.value`: "*OK * test123"
+  - example 2:  
+      ``$SB.addExtension(`replaceFirstWord`, (me, replacement) =>``    
+      &nbsp;&nbsp;&nbsp;&nbsp;``(me.indexOf(` `) ? replacement : "") + me.value.slice(me.indexOf(` `));``  
+      ``const test = $SB`test123 4567`.replaceFirstWord(`123`)`` => `test.value` => "123 456"
 ---
 
 - `append(str2Append)` [*mutates, chainable*] Appends [`str2Append`] to the value.
