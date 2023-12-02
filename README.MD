@@ -77,7 +77,7 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 - `reset` [*getter, mutates, chainable*] Sets the value back to the value the instance was instantiated with.
 - `surroundWith({r: string (default ""), [r: string (default "")]})` [*mutates, chainable*]  
    Surround the value with strings from `[l]`(eft) and `[r]`(ight).
-- `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa bbb` or `aaa-bbb` to camelCased notation (`aaaBbb`). 
+- `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa-bbb` to camelCased notation (`aaaBbb`). 
 - `toDashed` [*getter, mutates, chainable*] converts a value with pattern `aaaBbbCcc` to dashed notation (`aaa-bbb-ccc`)
 - `toLower` [*getter, mutates, chainable*] alias for `String.prototype.toLowerCase`.
 - `toUpper` [*getter, mutates, chainable*] alias for `String.prototype.toUpperCase`.
