@@ -40,9 +40,10 @@ function demo() {
     $c.code(`$SB.addExtension(name: string, function(instance, [...arguments]) {...}): function)`)}.
     <br>For this demo two extra methods are added to display bits of code as ${
     $c.code(`&lt;code>`)}-elements</div>`);
-  const fooBar = $SB`hello`.replace(`hello`, `hell o, `).repeat(3).firstUp;
+  const fooBar = $SB`hello`.replace(`hello`, `hello world `).repeat(3).trim().firstUp;
   print($c.codeBlock`import $SB from "[location of es-stringbuilder-plus module]";
-$SB.<i class="red">addExtension</i>(\`code\`, (instance, str, ...args) =>
+// add two user extensions
+$SB.addExtension(\`code\`, (instance, str, ...args) =>
   instance
     .is(str ?? instance.value, ...args)
     .surroundWith({l: \`&lt;code>\`, r: \`&lt;/code>\`}));
@@ -51,9 +52,11 @@ $SB.<i class="red">addExtension</i>(\`codeBlock\`, (instance, str, ...args) =>
     .is(str ?? instance.value, ...args)
     .surroundWith({l: \`&lt;code class="codeblock">\`, r: \`&lt;/code>\`}));
 
+// build a string
 const fooBar = $SB\`hello\`
-  .replace(\`hello\`, \`hell o \`)
+  .replace(\`hello\`, \`hello world\`)
   .repeat(3)
+  .trim()
   .firstUp;`.value,
     `<div>${$c.code`fooBar`}: ${printQuoted(fooBar)}</div>
    <div>${$c.code`fooBar.length`}: ${fooBar.length}</div>
@@ -101,13 +104,43 @@ const fooBar = $SB\`hello\`
   
   print(`!!<h3>Additional case getters</h3>`);
   const lorem = $SB`lorem ipsum dolor sit amet`;
-  const lorem2 = lorem.clone.toLowerCase().wordsUp.replace(/\s/g, ``).toDashed;
-  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.toUpper")} => ${lorem.toUpper.quot4Print()}`);
-  print(`${$c.code("$SB`LOREM IPSUM DOLOR SIT AMET`.toLower")} => ${lorem.toLower.quot4Print()}`);
-  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.firstUp")} => ${lorem.firstUp.quot4Print()}`);
-  print(`${$c.code("$SB`lorem ipsum dolor sit amet`.wordsUp")} => ${lorem.wordsUp.quot4Print()}`);
-  print(`${$c.code("$SB`loremIpsumDolorSitAmet`.toDashed")} => ${lorem2.quot4Print()}`);
-  print(`${$c.code("$SB`lorem-ipsum-dolor-sit-amet`.toCamel")} => ${lorem2.toCamel.quot4Print()}`);
+  const LOREM = $SB`LOREM IPSUM DOLOR SIT AMET`;
+  const loRem = $SB`loremIpsumDolorSitAmet`;
+  print($c.codeBlock(`const lorem = $SB\`lorem ipsum dolor sit amet\`;
+const LOREM = $SB\`LOREM IPSUM DOLOR SIT AMET\`;
+const loRem = $SB\`loremIpsumDolorSitAmet\`;
+lorem;              //=> ${lorem}
+LOREM;              //=> ${LOREM}
+loRem;              //=> ${loRem}
+lorem.toUpper;      //=> ${lorem.toUpper}
+lorem.firstUp;      //=> ${lorem.firstUp}
+lorem.reset;        //=> ${lorem.reset}
+lorem.wordsUp;      //=> ${lorem.wordsUp}
+
+/* wordsUp works for full uppercase strings too */
+lorem.toUpper;      //=> ${lorem.toUpper}
+lorem.wordsUp;      //=> ${lorem.wordsUp}
+
+
+/* firstUp keeps spaces around strings and respects diacriticals */
+lorem.surroundWith({l: \`   \`, r: \` \`})
+  .toLower;         //=> ${lorem.surroundWith({l: `   `, r: ` `}).toLower.quot4Print()}
+lorem.firstUp;      //=> ${lorem.firstUp.quot4Print() }
+lorem.is\` üpfirst\`; //=> ${lorem.is` üpfirst`.quot4Print()}
+lorem.firstUp;      //=> ${lorem.firstUp.quot4Print()}
+
+/* wordsUp idem */
+lorem.is\` ïs, äha:   (øk) /ri_ght? \`;
+lorem;               //=> ${lorem.is` ïs,  äha:   (øk) /ri_ght? `.quot4Print()}
+lorem.wordsUp;       //=> ${lorem.wordsUp.quot4Print()}
+
+/**
+ * convert camel case- to dashed notation and vice versa
+ * for data-attributes or css in ECMAScript code
+ */
+loRem.toDashed;     //=> ${loRem.toDashed}
+loRem.toCamel       //=> ${loRem.toCamel} `).value
+  );
   
   print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
@@ -118,17 +151,17 @@ const fooBar = $SB\`hello\`
     .interpolate({head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`})
     .append(`</table>`);
   const repX = escHtml("const tbl = $SB`{row}`##\
-    .interpolate(...someRows)##\
-    .prepend(`<table>{head}`)##\
-    .interpolate({##\
-      head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`})##\
-    .append(`</table>`);")
-    .replace(/##/g, `<br>`);
-  const repY = `const someRows = [...Array(5)].map( (_, i) =>
+  .interpolate(...someRows)##\
+  .prepend(`<table>{head}`)##\
+  .interpolate({##\
+    head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`})##\
+  .append(`</table>`);")
+    .replace(/##/g, `\n`);
+  const repY = `// create some rows\nconst someRows = [...Array(5)].map( (_, i) =>
   ( { row: ${escHtml(`\`<tr><td>#\${i+1}</td><td>cell \${
       i+1}.1</td><td>cell \${i+1}.2</td></tr>\``)} } );`;
   print(
-    `${$c.codeBlock`${repY}<br>${repX}`}
+    `${$c.codeBlock`${repY}\n// interpolate rows into a table\n${repX}`}
      ${$c.code(`tbl`)} =&gt; ${tbl}`);
   
   
@@ -149,7 +182,10 @@ const fooBar = $SB\`hello\`
     $.Popup.show({ content: `<b>Working on it...</b>`, modal: true });
     setTimeout(_ => ($.Popup.removeModal(), testPerformance()), 10);
   });
-  
+  // const scrpt = Object.assign(document.createElement(`script`), {type: "application/javascript", src: `prism.min.js`, onload: codeBlocks2Code});
+  // scrpt.dataset.manual = 1;
+  // document.body.append(scrpt);
+  codeBlocks2Code();
   spacer();
 }
 
@@ -192,6 +228,27 @@ function testPerformance(n = 100_000) {
   $.Popup.show({content: result});
 }
 
+function codeBlocks2Code() {
+  const codeReplacements = new Map( [
+    [`<`, `&lt;`],
+    [`>`, `&gt;`],
+    [`&`, a => `&amp;${a[1]}`],
+    [`linebreak`, `\n<br>`],
+    [`reducebreaks`, `\n\n`] ] );
+  const allBlocks = $.nodes(`.codeblock`);
+  $.nodes(`code:not(.codeblock)`).forEach( cd => $(cd).addClass(`inline`));
+  allBlocks.forEach(block => {
+    block = $(block);
+    block.addClass(`language-javascript`).removeClass(`codeblock`);
+    
+    const pre = $.virtual(`<pre class="language-javascript line-numbers">${
+      block.HTML.get(1).trim()
+        .replace(/&[^lgtamp;]/g, codeReplacements.get(`&`))}</pre>`);
+    block.replaceWith(pre);
+  });
+  return Prism.highlightAll();
+}
+
 function styleIt() {
   $.editCssRules(
     `table { display: inline-block; vertical-align: text-top; border-collapse: collapse; }`,
@@ -214,6 +271,13 @@ function styleIt() {
       margin-left: -2rem;
       margin-top: 0.5rem;
      }`,
+    `code.inline {
+      color: green;
+      background-color: #eee;
+      padding: 2px;
+      font-family: monospace;
+    }`,
+    `code.language-javascript { background-color: transparent; }`,
     `i.red {color: red}`,
     `div.q::after {
       font-family: Georgia, verdana;
