@@ -49,6 +49,7 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 ---
 
 - `append(str2Append)` [*mutates, chainable*] Appends [`str2Append`] to the value.
+- `as(newValue)` [*mutates, chainable*] alias for `[instance].is`.
 - `clear` [*getter, mutates, chainable*] Clears the value - effectively rendering it to an empty string.
 - `clone` [*getter, chainable*] Creates a clone of the instance.
 - `empty` [*getter, mutates, chainable*] Alias of `clear`. Clears the value, effectively rendering it to an empty string.
@@ -74,6 +75,8 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
    `[start]` or `[end]` is not given, the defaults are respectively 0 or the length of the value.  
   `[end]` can be negative (meaning `[end]` characters from the end of the value). 
 - `reset` [*getter, mutates, chainable*] Sets the value back to the value the instance was instantiated with.
+- `surroundWith({r: string (default ""), [r: string (default "")]})` [*mutates, chainable*]  
+   Surround the value with strings from `[l]`(eft) and `[r]`(ight).
 - `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa bbb` or `aaa-bbb` to camelCased notation (`aaaBbb`). 
 - `toDashed` [*getter, mutates, chainable*] converts a value with pattern `aaaBbbCcc` to dashed notation (`aaa-bbb-ccc`)
 - `toLower` [*getter, mutates, chainable*] alias for `String.prototype.toLowerCase`.
