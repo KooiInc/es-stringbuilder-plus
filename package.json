@@ -1,6 +1,6 @@
 {
   "name": "esstringbuilderplus",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "ES string builder with extra's",
   "main": "index.js",
   "scripts": {
