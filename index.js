@@ -36,7 +36,7 @@ function instantiate(values) {
     get initial() { return values.initialValue; },
     get value() { return values.instanceValue; },
     set value(v) { instance.is(v); },
-    get reset() { return instance.is(values.initialValue); },
+    get reset() { return instance.is(values.initial); },
     get clear() { return instance.is(``); },
     get empty() { return instance.is(``); },
     get clone() { return StringBuilder`${instance.value}`; },
@@ -91,17 +91,39 @@ function getExclusion() {
 function toCamelcase(str2Convert) {
   return str2Convert.toLowerCase()
     .trim()
-    .split(/[- ]/)
-    .map( (str, i) => i && `${ucFirst(str)}` || str )
+    .split(`-`)
+    .map( (v, i) => i && `${v[0].toUpperCase()}${v.slice(1)}` || v)
     .join(``);
 }
 
 function toDashedNotation(str2Convert) {
-  return str2Convert.replace(/[A-Z]/g, a => `-${a.toLowerCase()}`).replace(/^-|-$/, ``);
+  return str2Convert
+    .replace(/[A-Z]./g, a => `-${a.toLowerCase()}`)
+    .replace(/^-|-$/, ``);
+}
+
+function ucFirst(value) {
+  const spaces = value.match(/^\s+/);
+  value = value.trimStart();
+  return (spaces?.[0] ?? ``) + value[0].toUpperCase() + value.slice(1).toLowerCase();
 }
 
 function wordsFirstUp(str) {
-  return str.replace(/\b[^\s|_]/gi, a => ucFirst(a));
+  let parsed = ``;
+  str = str.toLowerCase().split(``);
+  let prev;
+  while (str.length) {
+    const chr = str.shift();
+    if ((!prev || !/\p{L}|_/u.test(prev)) && /\p{L}/u.test(chr)) {
+      parsed += chr.toUpperCase();
+      prev = chr;
+      continue;
+    }
+    parsed += chr;
+    prev = chr;
+  }
+  
+  return parsed;
 }
 
 function nativeStringMethods() {
@@ -165,15 +187,12 @@ function lastIndexOf(str, findMe, beforeIndex) {
   return index < 0 ? undefined : index;
 }
 
-function ucFirst([first, ...theRest]) {
-  return `${first.toUpperCase()}${theRest.join(``)}`;
-}
-
 function descriptionsGetter(full = false) {
   const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
+  const userX = Object.keys(userExtensions);
+  const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
   const allProps = instanceProps
     .map( ([key, descr]) => {
-      const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
       if (!full && allNatives.find(nkey => key === nkey)) { return undefined; }
       const props = [];
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
@@ -185,7 +204,8 @@ function descriptionsGetter(full = false) {
       if (isChainable || /empty|reset|is/.test(key)) { props.push(`mutates`); }
       if (isChainable || key === `clone`)  { props.push(`chainable`); }
       if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
-      if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`)}
+      if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`); }
+      if (userX.find(ky => ky === key)) { props.push (`user extension`) }
       return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
     })
     .filter(v => v);
