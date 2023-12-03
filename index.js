@@ -207,7 +207,7 @@ function descriptionsGetter() {
       
       if (descr.set) { props.push(`setter (mutates)`); }
       if (isUserExtension) { props.push (`user extension`) }
-      if (isChainable) { props.push(`mutates`, `chainable`); }
+      if (isChainable) { props.push(`chainable (mutates)`); }
       
       return `${key}${argsClause} [${props.join(`, `)}]`;
     }).filter(v => v).sort( (a, b) => a.localeCompare(b) );
