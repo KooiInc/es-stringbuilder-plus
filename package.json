@@ -4,7 +4,7 @@
   "description": "ECMAScript string builder with extra's",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./Test/tests.js"
   },
   "repository": {
     "type": "git",
