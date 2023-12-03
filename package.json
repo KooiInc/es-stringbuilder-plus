@@ -1,7 +1,7 @@
 {
   "name": "esstringbuilderplus",
-  "version": "1.0.6",
-  "description": "ES string builder with extra's",
+  "version": "1.0.7",
+  "description": "ECMAScript string builder with extra's",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
