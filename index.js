@@ -1,15 +1,16 @@
 const natives =  getNativeStringMethodKeys();
 const interpolate = interpolateFactory();
 const userExtensions = {};
+let forTest = false;
 
 Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
 Object.defineProperty(StringBuilder, `addExtension`, {value: (name, fn) => userExtensions[name] = fn});
 
-export default StringBuilder;
+export { StringBuilder as default };
 
 function StringBuilder(str, ...args) {
   const instanceValue = byContract(str, ...args);
-  const values = {initial: instanceValue, instanceValue,};
+  const values = {initialValue: instanceValue, forTest: false, instanceValue,};
   return Object.freeze(instantiate(values));
 }
 
@@ -17,9 +18,10 @@ function instantiate(values) {
   const instance = {
     get length() { return instance.value.length; },
     get initial() { return values.initialValue; },
-    get value() { return values.instanceValue; },
+    get value() { return String(values.instanceValue); },
     set value(v) { instance.is(v); },
-    get reset() { return instance.is(values.initial); },
+    set test(v) { forTest = v; },
+    get reset() { return instance.is(values.initialValue); },
     get clear() { return instance.is(``); },
     get empty() { return instance.is(``); },
     get clone() { return StringBuilder`${instance.value}`; },
@@ -163,9 +165,9 @@ function isStringOrTemplate(str) {
 
 function byContract(str, ...args) {
   const isMet = isStringOrTemplate(str);
-  if (!isMet) { console.info(`✘ String contract not met: input [${
+  if (!isMet && !forTest) { console.info(`✘ String contract not met: input [${
     String(str)?.slice(0, 15)}] not a (template) string or number`); }
-  return !isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``;
+  return String(!isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``);
 }
 
 // (last)indexOf should deliver undefined if nothing was found.
@@ -187,7 +189,7 @@ function descriptionsGetter() {
   
   return instanceProps
     .map( ([key, descr]) => {
-      if (/name|prototype/i.test(key) || allNatives.find(nkey => key === nkey)) { return; }
+      if (/name|prototype|test/i.test(key) || allNatives.find(nkey => key === nkey)) { return; }
       const props = [];
       const isValueReturn = /^(tostring|valueof|initial|length|indexof|lastindexof|clone|quot4Print)$/i.test(key);
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
