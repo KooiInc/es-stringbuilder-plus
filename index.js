@@ -1,9 +1,8 @@
-const natives =  nativeStringMethods();
+const natives =  getNativeStringMethodKeys();
 const interpolate = interpolateFactory();
 const userExtensions = {};
 
 Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
-Object.defineProperty(StringBuilder, `describeAll`, { get() { return descriptionsGetter(true); } });
 Object.defineProperty(StringBuilder, `addExtension`, {value: (name, fn) => userExtensions[name] = fn});
 
 export default StringBuilder;
@@ -12,22 +11,6 @@ function StringBuilder(str, ...args) {
   const instanceValue = byContract(str, ...args);
   const values = {initial: instanceValue, instanceValue,};
   return Object.freeze(instantiate(values));
-}
-
-function reRouteNatives(instance, values) {
-  natives.chainable.forEach( key =>
-    instance[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
-      ? function(...args) { return instance.is(values.instanceValue[key]?.(...args)); }
-      : function() { return instance.is(values.instanceValue[key]?.()); } );
-  natives.valueReturn.forEach( key => {
-    const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
-    if (!isFn) { return; }
-    instance[key] = isFn.length
-      ? function(...args) { return values.instanceValue[key]?.(...args); }
-      : function() { return values.instanceValue[key]?.(); }
-  });
-  
-  return instance;
 }
 
 function instantiate(values) {
@@ -48,6 +31,7 @@ function instantiate(values) {
     get toCamel() { return instance.is(toCamelcase(instance.value)); },
     quot4Print(quotes = `","`) { return quot(instance.value, quotes); },
     is(newValue, ...args) { values.instanceValue = byContract(newValue, ...args) ?? instance.value; return instance; },
+    as(newValue, ...args) { return instance.is(newValue, ...args); },
     quot(quotes = `"`) { return instance.is(quot(instance.value, quotes)); },
     surroundWith({l = ``, r = ``} = {}) { return instance.is(quot(instance.value, l.concat(`,${r}`))); },
     indexOf(...args) { return indexOf(instance.value, ...args); },
@@ -78,6 +62,22 @@ function instantiate(values) {
   return reRouteNatives(instance, values);
 }
 
+function reRouteNatives(instance, values) {
+  natives.chainable.forEach( key =>
+    instance[key] = Object.getOwnPropertyDescriptor(String.prototype, key)?.value.length
+      ? function(...args) { return instance.is(values.instanceValue[key]?.(...args)); }
+      : function() { return instance.is(values.instanceValue[key]?.()); } );
+  natives.valueReturn.forEach( key => {
+    const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
+    if (!isFn) { return; }
+    instance[key] = isFn.length
+      ? function(...args) { return values.instanceValue[key]?.(...args); }
+      : function() { return values.instanceValue[key]?.(); }
+  });
+  
+  return instance;
+}
+
 function getExclusion() {
   // notes:
   // - trimLeft/-Right are redundant (use trimStart/-End),
@@ -103,41 +103,35 @@ function toDashedNotation(str2Convert) {
 }
 
 function ucFirst(value) {
-  const spaces = value.match(/^\s+/);
+  const startSpaces = value.match(/^\s+/);
   value = value.trimStart();
-  return (spaces?.[0] ?? ``) + value[0].toUpperCase() + value.slice(1).toLowerCase();
+  return (startSpaces?.[0] ?? ``) + value[0].toUpperCase() + value.slice(1).toLowerCase();
 }
 
 function wordsFirstUp(str) {
   let parsed = ``;
   str = str.toLowerCase().split(``);
   let prev;
+  
   while (str.length) {
     const chr = str.shift();
-    if ((!prev || !/\p{L}|_/u.test(prev)) && /\p{L}/u.test(chr)) {
-      parsed += chr.toUpperCase();
-      prev = chr;
-      continue;
-    }
-    parsed += chr;
+    parsed += /\p{L}/u.test(chr) && (!prev || !/\p{L}|_/u.test(prev))
+      ? chr.toUpperCase() : chr;
     prev = chr;
   }
   
   return parsed;
 }
 
-function nativeStringMethods() {
+function getNativeStringMethodKeys() {
   const excluded = getExclusion();
   const excludeFromChainRE = /^(at|charAt|codePointAt)$/i;
+  const allDescriptors = Object.entries(Object.getOwnPropertyDescriptors(String.prototype));
   const checkReturnValue = (key, v) => v.value instanceof Function && typeof `abc`[key]() || `n/a`;
-  const chainable = Object
-    .entries(Object.getOwnPropertyDescriptors(String.prototype))
-    .filter( ([key, v]) =>
+  const chainable = allDescriptors.filter( ([key, v]) =>
       !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
     .map( ([key,]) => key );
-  const valueReturn = Object
-    .entries(Object.getOwnPropertyDescriptors(String.prototype))
-    .filter( ([key, v]) =>
+  const valueReturn = allDescriptors.filter( ([key, v]) =>
       !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
     .map( ([key,]) => key );
   
@@ -150,7 +144,7 @@ function quot(str, chr = `","`) {
 }
 
 function truncate( str, {at, html = false, wordBoundary = false} = {} ) {
-  if (str.length <= at) { return str; }
+  if (!at || !(+at) || str.length <= at) { return str; }
   let subString = str.slice(0, at);
   const endsWith = html ? "&hellip;" : `...`;
   const lastWordBoundary = [...subString.matchAll(/\b([\s'".,?!;:)\]])/g)]?.pop()?.index;
@@ -159,8 +153,7 @@ function truncate( str, {at, html = false, wordBoundary = false} = {} ) {
 }
 
 function remove(str, start, end) {
-  const toRemove = str.slice(start || 0, end || str.length);
-  return str.replace(toRemove, ``);
+  return str.replace(str.slice(start || 0, end || str.length), ``);
 }
 
 function isStringOrTemplate(str) {
@@ -170,8 +163,8 @@ function isStringOrTemplate(str) {
 
 function byContract(str, ...args) {
   const isMet = isStringOrTemplate(str);
-  if (!isMet) { console.info(`✘ String contract not met: input [${String(str)?.slice(0, 15)
-  }] not a (template) string or number`) }
+  if (!isMet) { console.info(`✘ String contract not met: input [${
+    String(str)?.slice(0, 15)}] not a (template) string or number`); }
   return !isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``;
 }
 
@@ -187,29 +180,37 @@ function lastIndexOf(str, findMe, beforeIndex) {
   return index < 0 ? undefined : index;
 }
 
-function descriptionsGetter(full = false) {
+function descriptionsGetter() {
   const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
-  const userX = Object.keys(userExtensions);
-  const allNatives = natives.chainable.concat(natives.valueReturn).filter(key => !/indexof/i.test(key));
-  const allProps = instanceProps
+  const userXtensions = Object.keys(userExtensions);
+  const allNatives = natives.chainable.concat(natives.valueReturn).filter( v => !/indexof/i.test(v) );
+  
+  return instanceProps
     .map( ([key, descr]) => {
-      if (!full && allNatives.find(nkey => key === nkey)) { return undefined; }
+      if (/name|prototype/i.test(key) || allNatives.find(nkey => key === nkey)) { return; }
       const props = [];
+      const isValueReturn = /^(tostring|valueof|initial|length|indexof|lastindexof|clone|quot4Print)$/i.test(key);
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
-      const fnString = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `);
       const argsClause = isMethod ? descr.value.toString().match(/(\(.+?\))/)?.shift() ?? `()` : ``;
-      const isChainable = /return instance\.is\(|\=>.+instance\.is\(/.test(fnString);
+      
       if (descr.get) { props.push(`getter`); }
+      if (descr.value) { props.push(`method`); }
+      if (/indexof/i.test(key)) { props.push(`native override`); }
+      if (isValueReturn) {
+        props.push(`value return (not mutating)`);
+        return `${key}${argsClause} [${props.join(`, `)}]`;
+      }
+      
+      const methodStringified = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `).trim();
+      const isUserExtension = userXtensions.find(ky => ky === key);
+      const isChainable = isUserExtension || /return instance|^(empty|reset|is)/i.test(methodStringified);
+      
       if (descr.set) { props.push(`setter (mutates)`); }
-      if (isChainable || /empty|reset|is/.test(key)) { props.push(`mutates`); }
-      if (isChainable || key === `clone`)  { props.push(`chainable`); }
-      if (!props.length || /initial|length|indexof/i.test(key)) { props.push(`returns a value (not mutating)`); }
-      if (/^(indexof|lastindexof)$/i.test(key)) { props.push(`(native) override`); }
-      if (userX.find(ky => ky === key)) { props.push (`user extension`) }
-      return /name|prototype/i.test(key) ? `` : `${key}${argsClause} [${props.join(`, `)}]`;
-    })
-    .filter(v => v);
-  return allProps.sort( (a, b) => a.localeCompare(b));
+      if (isUserExtension) { props.push (`user extension`) }
+      if (isChainable) { props.push(`mutates`, `chainable`); }
+      
+      return `${key}${argsClause} [${props.join(`, `)}]`;
+    }).filter(v => v).sort( (a, b) => a.localeCompare(b) );
 }
 
 function interpolateFactory() {
