@@ -21,10 +21,10 @@ function demo() {
       string builder where they really need them. But JS has the programmer either hoping the
       engine is smart enough, or using black magic to force it to do what they want.
       </div>`
-    .append($SB`Cited from
+    .append($c.as`Cited from
         <a target="_blank" href="https://iliazeus.github.io/articles/js-string-optimizations-en/"
         >Exploring V8's strings: implementation and optimizations</a>.</p>
-      `.quot(`<p>,</p>`))
+      `.surroundWith({l:`<p>`,r: `</p>`}))
     .append`<p>
       Consider the code here the aforementioned <i>black magic</i>. It delivers a way to build a string
       (actually a wrapped <code>String</code> instance making its internal string value <i>mutable</i>).
@@ -94,7 +94,7 @@ const fooBar = $SB\`hello\`
   
   print(`!!<h3>By contract (only strings or numbers, otherwise empty)</h3>`)
   const fooBarred = $SB({no: `can do`});
-  const fbCode = $c.code(`fooBarred`);
+  const fbCode = $c.code(`fooBarred`).value;
   print(
     `${$c.code("const fooBarred = $SB({no: `can do`});")}
     <div>${fbCode} is an empty string (see console) => ${fooBarred.quot4Print()}</div>
@@ -102,7 +102,7 @@ const fooBar = $SB\`hello\`
     <div>${fbCode} => ${fooBarred.is(42).quot4Print()} (numbers are converted to string)</div>`
   );
   
-  print(`!!<h3>Additional case getters</h3>`);
+  print(`!!<h3>Additional casing getters</h3>`);
   const lorem = $SB`lorem ipsum dolor sit amet`;
   const LOREM = $SB`LOREM IPSUM DOLOR SIT AMET`;
   const loRem = $SB`loremIpsumDolorSitAmet`;
@@ -112,6 +112,7 @@ const loRem = $SB\`loremIpsumDolorSitAmet\`;
 lorem;              //=> ${lorem}
 LOREM;              //=> ${LOREM}
 loRem;              //=> ${loRem}
+// ---
 lorem.toUpper;      //=> ${lorem.toUpper}
 lorem.firstUp;      //=> ${lorem.firstUp}
 lorem.reset;        //=> ${lorem.reset}
@@ -139,8 +140,7 @@ lorem.wordsUp;       //=> ${lorem.wordsUp.quot4Print()}
  * for data-attributes or css in ECMAScript code
  */
 loRem.toDashed;     //=> ${loRem.toDashed}
-loRem.toCamel       //=> ${loRem.toCamel} `).value
-  );
+loRem.toCamel       //=> ${loRem.toCamel}`).value );
   
   print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
@@ -164,12 +164,11 @@ loRem.toCamel       //=> ${loRem.toCamel} `).value
     `${$c.codeBlock`${repY}\n// interpolate rows into a table\n${repX}`}
      ${$c.code(`tbl`)} =&gt; ${tbl}`);
   
-  
   print(`!!<h3>Available custom getters and methods of a $SB instance</h3>
       <div>These are the 'extensions' one can use for a $SB instance.
       One can also use all (<i>not deprecated</i>) native
       <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String"
-      >String methods</a>. The result of these native methods can mostly be
+      >String methods</a>. The result of the getters, methods and native methods can mostly be
       <a target="_blank" href="https://www.geeksforgeeks.org/method-chaining-in-javascript/">chained</a>.</div>`,
     `<code>$SB.describe</code> =>
      <div class="local">${describe2HTML()}</div>`);
@@ -208,7 +207,7 @@ function testPerformance(n = 100_000) {
   const sum = +(perf/1000).toFixed(3);
   let result = `<b>Performance</b>
     <div>Created ${n.toLocaleString()} instances using ${$c.code("$SB`hello world`.repeat(5).toUpperCase()")}
-    <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/instance, Σ ${
+    <br>=&gt; μ ${(perf/n/1000).toFixed(8)} seconds/instance, Σ ${
     sum.toLocaleString()} seconds</div>`;
   
   perf = performance.now();
@@ -222,7 +221,7 @@ function testPerformance(n = 100_000) {
   const sum2 = +(perf/1000).toFixed(3);
   result +=
     `<p>${n.toLocaleString()} times ${$c.code("[instance].prepend(`hello `).append(`world`)")}
-     <br>=&gt; x̄ ${(perf/n/1000).toFixed(8)} seconds/operation, Σ ${
+     <br>=&gt; μ ${(perf/n/1000).toFixed(8)} seconds/operation, Σ ${
       sum2.toLocaleString()} seconds</p>`;
   $.Popup.removeModal();
   $.Popup.show({content: result});
