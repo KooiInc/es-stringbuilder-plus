@@ -62,7 +62,7 @@ function allTests() {
       "String literal (function call)": () => test({lambda: () => basicString.as(`I am ok`), expected: `I am ok`}),
       "Empty String literal (template tag)": () => test({lambda: () => basicString.as``, expected: ``}),
     },
-    "Native String methods (non deprecated)": {
+    "Native (non deprecated) String methods": {
       "at": () => test({lambda: () => basicString.as(442).at(1), expected: `4`}),
       "charAt": () => test({lambda: () => basicString.as`442`.charAt(1), expected: `4`}),
       "charCodeAt": () => test({lambda: () => basicString.as`hellö`.charCodeAt(4), expectedIsString: false, expected: 246}),
