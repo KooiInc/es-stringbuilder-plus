@@ -26,6 +26,7 @@ $SB.addExtension(`userGetterTest`, instance => instance.value + ` got it`);
 $SB.addExtension(`userMethodTest`, (instance, extraText) => instance.value + extraText);
 $SB.addExtension(`toCodeElement`, (instance, codeText) => instance.is(`<code>${codeText}</code>`));
 $SB.addExtension(`italic`, instance => instance.is(`<i>${instance.value}</i>`));
+$SB.addExtension(`clone2FirstWord`, instance => instance.value.slice(0, instance.indexOf(` `)), true);
 const basicString = $SB``;
 basicString.test = true;
 
@@ -50,6 +51,7 @@ function runTests() {
 }
 
 function allTests() {
+  let firstWord;
   return {
     "By contract: only strings or numbers can be input for the constructor": {
       "Object literal": () => test({lambda: () => basicString.as({}), expected: `{}`, notEqual: true}),
@@ -83,8 +85,20 @@ function allTests() {
       "endsWith": () => test({lambda: () => basicString.endsWith`😁`, expectedIsString: false, expected: true}),
       "includes": () => test({lambda: () => basicString.includes`😁`, expectedIsString: false, expected: true}),
       "indexOf": () => test({lambda: () => basicString.indexOf(`l`), expectedIsString: false, expected: 2}),
-      "indexOf (note: overridden)": () => test({
+      "indexOf (fromIndex)":
+        () => test({lambda: () => basicString.indexOf(`l`, 5), expectedIsString: false, expected: undefined}),
+      "indexOf (override: return undefined if not found)": () => test({
         lambda: () => basicString.indexOf(`z`),
+        expectedIsString: false,
+        expected: undefined
+      }),
+      "indexOf (override can use regular expression)": () => test({
+        lambda: () => basicString.as`Hello World`.indexOf(/\W/),
+        expectedIsString: false,
+        expected: 5
+      }),
+      "indexOf (regular expression, fromIndex)": () => test({
+        lambda: () => basicString.as`Hello World`.indexOf(/\W/, 4),
         expectedIsString: false,
         expected: undefined
       }),
@@ -94,9 +108,27 @@ function allTests() {
         expectedIsString: false,
         expected: false
       }),
-      "lastIndexOf": () => test({lambda: () => basicString.lastIndexOf(`l`), expectedIsString: false, expected: 3}),
-      "lastIndexOf (note: overridden)": () => test({
+      "lastIndexOf":
+        () => test({lambda: () => basicString.lastIndexOf(`l`), expectedIsString: false, expected: 9}),
+      "lastIndexOf (position)":
+        () => test({lambda: () => basicString.lastIndexOf(`l`, 7), expectedIsString: false, expected: 3}),
+      "lastIndexOf (override: return undefined if nothing found)": () => test({
         lambda: () => basicString.lastIndexOf(`x`),
+        expectedIsString: false,
+        expected: undefined
+      }),
+      "lastIndexOf (override: can use regular expression)": () => test({
+        lambda: () => basicString.lastIndexOf(/\W/),
+        expectedIsString: false,
+        expected: 5
+      }),
+      "lastIndexOf (regular expression and position)": () => test({
+        lambda: () => basicString.lastIndexOf(/\W/, 6),
+        expectedIsString: false,
+        expected: 5
+      }),
+      "lastIndexOf (regular expression and (impossible) position)": () => test({
+        lambda: () => basicString.lastIndexOf(/\W/, 4),
         expectedIsString: false,
         expected: undefined
       }),
@@ -165,11 +197,7 @@ function allTests() {
       "firstUp with diacrit": () => test({lambda: () => basicString.as`ünderscore`.firstUp, expected: `Ünderscore`}),
       "initial": () => test({lambda: () => basicString.initial, expected: ``}),
       "interpolate": () => test({
-        lambda: () => {
-          const hi = {hi: `hello`};
-          return basicString.as`{hi}`.interpolate(hi);
-        }, expected: `hello`
-      }),
+        lambda: () => { const hi = {hi: `hello`}; return basicString.as`{hi}`.interpolate(hi); }, expected: `hello`}),
       "interpolate multiple": () => test({
         lambda: () => basicString.as`{hello}`.interpolate({hello: `hi `}, {hello: `there`}),
         expected: `hi there`
@@ -226,7 +254,11 @@ function allTests() {
       "$SB.addExtension(`toCodeElement`, (instance, codeText) => instance.is(`<code>${codeText}</code>`))":
         () => test({lambda: () => basicString.toCodeElement(`const test123;`), expected: `<code>const test123;</code>`}),
       "$SB.addExtension(`italic`, instance => instance.is(`<i>${instance.value}</i>`));":
-        () => test({lambda: () => basicString.as`Hello World`.italic, expected: `<i>Hello World</i>`})
+        () => test({lambda: () => basicString.as`Hello World`.italic, expected: `<i>Hello World</i>`}),
+      "$SB.addExtension(`clone2FirstWord`, instance => instance.value.slice(0, instance.indexOf(` `)), true);":
+        () => test({lambda: () => (firstWord = basicString.as`Hello World`.clone2FirstWord, firstWord), expected: `Hello`}),
+      "After .clone2FirstWord, basicString should not have changed":
+        () => test({lambda: () => basicString.value, expected: `Hello World`}),
     }
   };
 }
