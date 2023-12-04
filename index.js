@@ -209,7 +209,7 @@ function lastIndexOfRE(str, findMe, position) {
     }
     const matches = str.matchAll(findMe);
     return typeof position === `number` ?
-      [...matches]?.filter(m => m.index < position)?.pop()?.index :
+      [...matches]?.filter(m => m.index <= position)?.pop()?.index :
       [...matches]?.pop()?.index;
   }
   
@@ -223,7 +223,7 @@ function indexOfRE(str, findRegExp, beforeIndex) {
     }
     const matches = str.matchAll(findRegExp);
     return typeof beforeIndex === `number` ?
-      [...matches]?.filter(m => m.index < beforeIndex)?.[0]?.index :
+      [...matches]?.filter(m => m.index >= beforeIndex)?.[0]?.index :
       [...matches]?.[0]?.index;
   }
   
