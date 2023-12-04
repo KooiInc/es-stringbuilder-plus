@@ -71,7 +71,7 @@ function reRouteUserDefined(instance) {
             const nwValue = meth.value(instance, ...args);
 
             return meth.value.clone
-              ? instance.clone.as(nwValue?.value ?? nwValue)
+              ? instance.cloneWith(nwValue?.value ?? nwValue)
               : instance.is(nwValue?.value ?? nwValue);
           }
         } );
