@@ -49,7 +49,12 @@ function instantiate(values) {
     remove(start, end) { return instance.is(remove(instance.value, start, end)); },
     interpolate(...replacementTokens) { return instance.is(interpolate(instance.value, ...replacementTokens)); },
   };
+  reRouteUserDefined(instance, values);
   
+  return reRouteNatives(instance, values);
+}
+
+function reRouteUserDefined(instance, values) {
   Object.entries(Object.getOwnPropertyDescriptors(userExtensions))
     .forEach( ([key, meth]) => {
         const getOrValue = meth.value.length === 1 ? `get` : `value`;
@@ -60,8 +65,6 @@ function instantiate(values) {
         } );
       }
     );
-  
-  return reRouteNatives(instance, values);
 }
 
 function reRouteNatives(instance, values) {
@@ -111,8 +114,8 @@ function ucFirst(value) {
 }
 
 function wordsFirstUp(str) {
-  let parsed = ``;
   str = str.toLowerCase().split(``);
+  let parsed = ``;
   let prev;
   
   while (str.length) {
@@ -128,12 +131,12 @@ function wordsFirstUp(str) {
 function getNativeStringMethodKeys() {
   const excluded = getExclusion();
   const excludeFromChainRE = /^(at|charAt|codePointAt)$/i;
-  const allDescriptors = Object.entries(Object.getOwnPropertyDescriptors(String.prototype));
+  const allNativeStringDescriptors = Object.entries(Object.getOwnPropertyDescriptors(String.prototype));
   const checkReturnValue = (key, v) => v.value instanceof Function && typeof `abc`[key]() || `n/a`;
-  const chainable = allDescriptors.filter( ([key, v]) =>
+  const chainable = allNativeStringDescriptors.filter( ([key, v]) =>
       !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
     .map( ([key,]) => key );
-  const valueReturn = allDescriptors.filter( ([key, v]) =>
+  const valueReturn = allNativeStringDescriptors.filter( ([key, v]) =>
       !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
     .map( ([key,]) => key );
   
