@@ -187,11 +187,9 @@ function allTests() {
       "as (alias for is)": () => test({lambda: () => basicString.as`test456`, expected: `test456`}),
       "clear": () => test({lambda: () => basicString.clear, expected: ``}),
       "clone": () => test({lambda: () => basicString.clone.as(`was cloned`), expected: `was cloned`}),
-      "basicString not mutated after clone": () => test({
-        lambda: () => basicString,
-        expected: `was cloned`,
-        notEqual: true
-      }),
+      "basicString not mutated after clone": () => test({ lambda: () => basicString, expected: ``, }),
+      "cloneWith": () => test({lambda: () => basicString.cloneWith(`I Am Clone`), expected: `I Am Clone`}),
+      "basicString not mutated after cloneWith": () => test({ lambda: () => basicString, expected: `` }),
       "empty": () => test({lambda: () => basicString.empty, expected: ``}),
       "firstUp": () => test({lambda: () => basicString.as`HELlo`.firstUp, expected: `Hello`}),
       "firstUp with diacrit": () => test({lambda: () => basicString.as`ünderscore`.firstUp, expected: `Ünderscore`}),
