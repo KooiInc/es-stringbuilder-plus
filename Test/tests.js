@@ -42,7 +42,7 @@ function runTests() {
       print(!i  ? `** ${block}` : `\n** ${block}`);
       Object.keys(tests).forEach(key => {
         const tested = tests[key]();
-        print(`   - ${key} =>\n      ${tested}`);
+        print(`   * ${key} =>\n     ${tested}`);
       });
     }
   );
@@ -100,7 +100,7 @@ function allTests() {
       "indexOf (regular expression, fromIndex)": () => test({
         lambda: () => basicString.as`Hello World`.indexOf(/\W/, 4),
         expectedIsString: false,
-        expected: undefined
+        expected: 5
       }),
       "isWellFormed": () => test({lambda: () => basicString.isWellFormed(), expectedIsString: false, expected: true}),
       "isWellFormed (not)": () => test({
