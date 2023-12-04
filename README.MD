@@ -53,10 +53,13 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 - `as(newValue)` [*mutates, chainable*] alias for `[instance].is`.
 - `clear` [*getter, mutates, chainable*] Clears the value - effectively rendering it to an empty string.
 - `clone` [*getter, chainable*] Creates a clone of the instance.
+- `cloneWith(value: string or template string)` [*chainable*] Creates a clone of the instance. Either re-assign to
+   a new value, or use as intermediate value. 
 - `empty` [*getter, mutates, chainable*] Alias of `clear`. Clears the value, effectively rendering it to an empty string.
 - `firstUp` [*getter, mutates, chainable*] Convert the first letter of the value to uppercase.
-- `indexOf(stringToFindIndexOf: string, [startPosition]: int)` [*native (override), returns a value (not mutating)*] 
-   Returns the (zero based) index of the substring to find (optional starting at `[startPosition]`) or (the actual override) `undefined` when nothing was found.
+- `indexOf(stringToFindIndexOf: string|RegExp, [startPosition]: int)` [*native (override), returns a value (not mutating)*]   
+   Returns the (zero based) index of the substring to find (optional starting at `[startPosition]`)  
+   or `undefined` (instead of -1) when nothing was found. Furthermore The search term may be a regular expression.
 - `initial` [*getter, returns a value (not mutating)*] Retrieves the value the instance was instantiated with (see also `reset`). 
 - `interpolate(...replacementTokens)` [*mutates, chainable*]
    Interpolates terms from the value with one or more replacement objects (`[replacementTokens]`). 
@@ -66,6 +69,9 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
   **Notes**: 
   - `[instance].is(...)` will *not* change the *initial instance value* (which is stored for use in `[instance].reset`).
   - to re-assign the instance value one can also use the setter `[instance].value = ...`
+- `lastIndexOf(stringToFindIndexOf: string|RegExp, [beforePosition]: int)` [*native (override), returns a value (not mutating)*]   
+  Returns the (zero based) index of the substring to find (optional before `[beforePosition]` in the string)  
+  or `undefined` (instead of -1) when nothing was found. Furthermore The search term may be a regular expression.
 - `prepend(str2Prepend: string/template string)` [*mutates, chainable*]  inserts `[str2Prepend]` before the value.
 - `quot(quotes = '"')` [*mutates, chainable*] Adds `[quotes]` to the start and end of the value.
    `[quotes]` can be one character, or a string of two comma separated characters/string (e.g. `"[,]"` or `"*start*,*end*"`).    
@@ -87,4 +93,4 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
    or `&hellip` (`[html]` true) to it. When `[wordBoundary]` is true, truncates at the last word
    within the truncated result.  
 - `value` [*getter, setter (mutates)*] Retrieves the actual instance value or sets it.
-- `wordsUp` [*getter, mutates, chainable*] converts all first letters of words within the value to uppercase 
+- `wordsUp` [*getter, mutates, chainable*] converts all first letters of words within the value to uppercase
