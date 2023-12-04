@@ -4,7 +4,7 @@ const userExtensions = {};
 let forTest = false;
 
 Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
-Object.defineProperty(StringBuilder, `addExtension`, {value: (name, fn) => userExtensions[name] = fn});
+Object.defineProperty(StringBuilder, `addExtension`, { value: addUserExtension });
 
 export { StringBuilder as default };
 
@@ -36,8 +36,16 @@ function instantiate(values) {
     as(newValue, ...args) { return instance.is(newValue, ...args); },
     quot(quotes = `"`) { return instance.is(quot(instance.value, quotes)); },
     surroundWith({l = ``, r = ``} = {}) { return instance.is(quot(instance.value, l.concat(`,${r}`))); },
-    indexOf(...args) { return indexOf(instance.value, ...args); },
-    lastIndexOf(...args) { return lastIndexOf(instance.value, ...args); },
+    indexOf(...args) {
+      if (args?.[0]?.constructor === RegExp) {
+        return indexOfRE(instance.value, ...args);
+      }
+      return  indexOf(instance.value, ...args); },
+    lastIndexOf(...args) {
+      if (args?.[0]?.constructor === RegExp) {
+        return lastIndexOfRE(instance.value, ...args);
+      }
+      return lastIndexOf(instance.value, ...args); },
     toString() { return instance.value; },
     valueOf() { return instance.value; },
     prepend(str2Prepend, ...args) {
@@ -54,13 +62,16 @@ function instantiate(values) {
   return reRouteNatives(instance, values);
 }
 
-function reRouteUserDefined(instance, values) {
+function reRouteUserDefined(instance) {
   Object.entries(Object.getOwnPropertyDescriptors(userExtensions))
     .forEach( ([key, meth]) => {
         const getOrValue = meth.value.length === 1 ? `get` : `value`;
         Object.defineProperty( instance, key, { [getOrValue]: (...args) => {
             const nwValue = meth.value(instance, ...args);
-            return instance.is(nwValue?.value ?? nwValue);
+
+            return meth.value.clone
+              ? instance.clone.as(nwValue?.value ?? nwValue)
+              : instance.is(nwValue?.value ?? nwValue);
           }
         } );
       }
@@ -81,6 +92,11 @@ function reRouteNatives(instance, values) {
   });
   
   return instance;
+}
+
+function addUserExtension(name, fn, asClone = false) {
+  fn.clone = asClone;
+  userExtensions[name] = fn;
 }
 
 function getExclusion() {
@@ -176,13 +192,41 @@ function byContract(str, ...args) {
 // (last)indexOf should deliver undefined if nothing was found.
 // SEE https://youtu.be/99Zacm7SsWQ?t=2101
 function indexOf(str, findMe, fromIndex) {
-  const index = str.indexOf(findMe, fromIndex);
+  const index = str.indexOf(findMe, +fromIndex);
   return index < 0 ? undefined : index;
 }
 
 function lastIndexOf(str, findMe, beforeIndex) {
-  const index = str.lastIndexOf(findMe, beforeIndex);
+  const index = `${str}`.lastIndexOf(findMe, +beforeIndex);
   return index < 0 ? undefined : index;
+}
+
+function lastIndexOfRE(str, findMe, position) {
+  if (findMe?.constructor === RegExp) {
+    if (!findMe.global) {
+      findMe = RegExp(findMe, findMe.flags.concat(`g`));
+    }
+    const matches = str.matchAll(findMe);
+    return typeof position === `number` ?
+      [...matches]?.filter(m => m.index < position)?.pop()?.index :
+      [...matches]?.pop()?.index;
+  }
+  
+  return undefined;
+}
+
+function indexOfRE(str, findRegExp, beforeIndex) {
+  if (findRegExp?.constructor === RegExp) {
+    if (!findRegExp.global) {
+      findRegExp = RegExp(findRegExp, findRegExp.flags.concat(`g`));
+    }
+    const matches = str.matchAll(findRegExp);
+    return typeof beforeIndex === `number` ?
+      [...matches]?.filter(m => m.index < beforeIndex)?.[0]?.index :
+      [...matches]?.[0]?.index;
+  }
+  
+  return undefined;
 }
 
 function descriptionsGetter() {
