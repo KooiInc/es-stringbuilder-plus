@@ -59,7 +59,7 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 - `firstUp` [*getter, mutates, chainable*] Convert the first letter of the value to uppercase.
 - `indexOf(stringToFindIndexOf: string|RegExp, [startPosition]: int)` [*native (override), returns a value (not mutating)*]   
    Returns the (zero based) index of the substring to find (optional starting at `[startPosition]`)  
-   or `undefined` (instead of -1) when nothing was found. Furthermore The search term may be a regular expression.
+   or `undefined` (instead of -1) when nothing was found. Furthermore `[stringToFindIndexOf]` may be a regular expression.
 - `initial` [*getter, returns a value (not mutating)*] Retrieves the value the instance was instantiated with (see also `reset`). 
 - `interpolate(...replacementTokens)` [*mutates, chainable*]
    Interpolates terms from the value with one or more replacement objects (`[replacementTokens]`). 
@@ -71,7 +71,7 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
   - to re-assign the instance value one can also use the setter `[instance].value = ...`
 - `lastIndexOf(stringToFindIndexOf: string|RegExp, [beforePosition]: int)` [*native (override), returns a value (not mutating)*]   
   Returns the (zero based) index of the substring to find (optional before `[beforePosition]` in the string)  
-  or `undefined` (instead of -1) when nothing was found. Furthermore The search term may be a regular expression.
+  or `undefined` (instead of -1) when nothing was found. Furthermore `[stringToFindIndexOf]` may be a regular expression.
 - `prepend(str2Prepend: string/template string)` [*mutates, chainable*]  inserts `[str2Prepend]` before the value.
 - `quot(quotes = '"')` [*mutates, chainable*] Adds `[quotes]` to the start and end of the value.
    `[quotes]` can be one character, or a string of two comma separated characters/string (e.g. `"[,]"` or `"*start*,*end*"`).    
