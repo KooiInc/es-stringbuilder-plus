@@ -1,5 +1,3 @@
-import $SB from "../index.js";
-
 const results = {failed: 0, succeeded: 0};
 const assert = assertFactory();
 
