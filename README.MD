@@ -9,7 +9,7 @@ their internal value without the need for re-assigning.
 <b>ECMAScript (ES) string builder PLUS</b> is programmed in a 
 [class free object oriented](https://depth-first.com/articles/2019/03/04/class-free-object-oriented-programming) way.
 
-[**DEMO**](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
+[**DEMO & Tests**](https://kooiinc.github.io/es-stringbuilder-plus/Demo/)
 
 Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 
