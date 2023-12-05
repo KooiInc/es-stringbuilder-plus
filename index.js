@@ -37,16 +37,8 @@ function instantiate(values) {
     as(newValue, ...args) { return instance.is(newValue, ...args); },
     quot(quotes = `"`) { return instance.is(quot(instance.value, quotes)); },
     surroundWith({l = ``, r = ``} = {}) { return instance.is(quot(instance.value, l.concat(`,${r}`))); },
-    indexOf(...args) {
-      if (args?.[0]?.constructor === RegExp) {
-        return indexOfRE(instance.value, ...args);
-      }
-      return  indexOf(instance.value, ...args); },
-    lastIndexOf(...args) {
-      if (args?.[0]?.constructor === RegExp) {
-        return lastIndexOfRE(instance.value, ...args);
-      }
-      return lastIndexOf(instance.value, ...args); },
+    indexOf(...args) { return  indexOf(instance.value, ...args); },
+    lastIndexOf(...args) { return lastIndexOf(instance.value, ...args); },
     toString() { return instance.value; },
     valueOf() { return instance.value; },
     prepend(str2Prepend, ...args) {
@@ -69,7 +61,7 @@ function reRouteUserDefined(instance) {
         const getOrValue = meth.value.length === 1 ? `get` : `value`;
         Object.defineProperty( instance, key, { [getOrValue]: (...args) => {
             const nwValue = meth.value(instance, ...args);
-
+            
             return meth.value.clone
               ? instance.cloneWith(nwValue?.value ?? nwValue)
               : instance.is(nwValue?.value ?? nwValue);
@@ -193,11 +185,17 @@ function byContract(str, ...args) {
 // (last)indexOf should deliver undefined if nothing was found.
 // SEE https://youtu.be/99Zacm7SsWQ?t=2101
 function indexOf(str, findMe, fromIndex) {
+  if (findMe?.constructor === RegExp) {
+    return indexOfRE(str, findMe, fromIndex);
+  }
   const index = str.indexOf(findMe, +fromIndex);
   return index < 0 ? undefined : index;
 }
 
 function lastIndexOf(str, findMe, beforeIndex) {
+  if (findMe?.constructor === RegExp) {
+    return lastIndexOfRE(str, findMe, beforeIndex);
+  }
   const index = `${str}`.lastIndexOf(findMe, +beforeIndex);
   return index < 0 ? undefined : index;
 }
