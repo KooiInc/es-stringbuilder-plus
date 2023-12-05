@@ -1,20 +1,45 @@
 import $SB from "../index.js";
+import testRunner from "./tests.js";
+import {logFactory, $} from "./SBHelpers.bundled.js";
+
 $SB.addExtension(`code`, (instance, str, ...args) =>
-  instance.is(str ?? instance.value, ...args).surroundWith({l: `<code>`, r: `</code>`}));
+  instance.as(str ?? instance.value, ...args).surroundWith({l: `<code>`, r: `</code>`}));
 $SB.addExtension(`codeBlock`, (instance, str, ...args) =>
-  instance.is(str ?? instance.value, ...args).surroundWith({l: `<code class="codeblock">`, r: `</code>` }));
+  instance.as(str ?? instance.value, ...args).surroundWith({l: `<code class="codeblock">`, r: `</code>` }));
+$SB.addExtension(`escHtml`, (instance, str) => instance.as((str ?? instance.value).replace(/</g, `&lt;`)), true);
 window.$SB = $SB; // use in console for testing
-const {logFactory, $} = await import("./sbHelpers.bundled.js");
-const { log: print, } = logFactory();
+const $c = $SB``;
+const { log: print, logTop } = logFactory();
 const printQuoted = str => `"${str}"`;
 const escHtml = str => str.replace(/</g, `&lt;`);
 const spacer = _ => print(`!!<p>&nbsp;</p>`);
-console.clear();
-print(`!!<a target="_top" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>Back to repository</b></a>`)
-const $c = $SB``;
+const isStackBlitz = /stackblitz/i.test(top.location.href);
+const allProjectsLink = isStackBlitz
+  ? `<a target="_top" href="//stackblitz.com/@KooiInc">All projects</a> | ` : ``;
+!isStackBlitz && console.clear();
+const printHeader = () => {
+  print(`!!${allProjectsLink}
+    <a target=_top href="https://stackblitz.com/edit/web-platform-k1jygm?file=StringBuilderFactory.js">See also</a> |
+    <a target="_blank" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>@GitHub</b></a>
+    <p><button id="test">Run tests</button> <button id="perfBttn">performance</button></p>`);
+};
+const perfTest = () => {
+  $.Popup.show({ content: `<b>Working on it...</b>`, modal: true });
+  setTimeout(_ => ($.Popup.removeModal(), testPerformance()), 10);
+};
+const back2Demo = () => {
+  $(`#log2screen`).clear();
+  return demo();
+};
+
+$.delegate(`click`, `#test, #back2Main, #perfBttn`, evt =>
+  evt.target.id === `test` ? testRunner(print, $SB, $) :
+    evt.target.id === `perfBttn` ? perfTest() : back2Demo());
+
 demo();
 
 function demo() {
+  printHeader();
   const header = $SB`!!<h2>ES Stringbuilder PLUS</h2>`
     .append`<div class="q">
       In many other languages, a programmer can choose to explicitly use a string view or a
@@ -145,21 +170,23 @@ loRem.toCamel       //=> ${loRem.toCamel}`).value );
   print(`!!<h3>Interpolate</h3>`);
   const someRows = [...Array(5)].map( (_, i) =>
     ({ row: `<tr><td>#${i+1}</td><td>cell ${i+1}.1</td><td>cell ${i+1}.2</td></tr>`}) );
+  const tblHead = {head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`};
   const tbl = $SB`{row}`
     .interpolate(...someRows)
     .prepend(`<table>{head}`)
-    .interpolate({head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`})
+    .interpolate(tblHead)
     .append(`</table>`);
   const repX = escHtml("const tbl = $SB`{row}`##\
   .interpolate(...someRows)##\
   .prepend(`<table>{head}`)##\
-  .interpolate({##\
-    head: `<tr><th>#</th><th>col1</th><th>col2</th></tr>`})##\
-  .append(`</table>`);")
-    .replace(/##/g, `\n`);
+  .interpolate(tblHead)##\
+  .append(`</table>`);"
+    .replace(/##/g, `\n`));
   const repY = `// create some rows\nconst someRows = [...Array(5)].map( (_, i) =>
-  ( { row: ${escHtml(`\`<tr><td>#\${i+1}</td><td>cell \${
-      i+1}.1</td><td>cell \${i+1}.2</td></tr>\``)} } );`;
+  ( { row: ${$c.escHtml(`\`<tr><td>#\${i+1}</td><td>cell \${
+      i+1}.1</td><td>cell \${i+1}.2</td></tr>\``)} } );
+const tblHead = ${
+    $c.escHtml(`{head: \`<tr><th>#</th><th>col1</th><th>col2</th></tr>\`}`)};`;
   print(
     `${$c.codeBlock`${repY}\n// interpolate rows into a table\n${repX}`}
      ${$c.code(`tbl`)} =&gt; ${tbl}`);
@@ -176,14 +203,6 @@ loRem.toCamel       //=> ${loRem.toCamel}`).value );
   styleIt();
   embed();
   
-  print(`!!<button id="perfBttn">performance</button>`);
-  $(`#perfBttn`).on(`click`, () => {
-    $.Popup.show({ content: `<b>Working on it...</b>`, modal: true });
-    setTimeout(_ => ($.Popup.removeModal(), testPerformance()), 10);
-  });
-  // const scrpt = Object.assign(document.createElement(`script`), {type: "application/javascript", src: `prism.min.js`, onload: codeBlocks2Code});
-  // scrpt.dataset.manual = 1;
-  // document.body.append(scrpt);
   codeBlocks2Code();
   spacer();
 }
@@ -276,6 +295,7 @@ function styleIt() {
       padding: 2px;
       font-family: monospace;
     }`,
+    `.testKey { font-family: "courier new"; color: green; font-weight: bold; }`,
     `code.language-javascript { background-color: transparent; }`,
     `i.red {color: red}`,
     `div.q::after {
