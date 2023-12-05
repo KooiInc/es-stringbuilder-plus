@@ -13,14 +13,15 @@ const { log: print, logTop } = logFactory();
 const printQuoted = str => `"${str}"`;
 const escHtml = str => str.replace(/</g, `&lt;`);
 const spacer = _ => print(`!!<p>&nbsp;</p>`);
-const isStackBlitz = /stackblitz/i.test(top.location.href);
+const isStackBlitz = /stackblitz/i.test(location.href);
 const allProjectsLink = isStackBlitz
-  ? `<a target="_top" href="//stackblitz.com/@KooiInc">All projects</a> | ` : ``;
+  ? `<a target="_top" href="//stackblitz.com/@KooiInc">All projects</a> | <a target=_top href="https://stackblitz.com/edit/web-platform-k1jygm?file=StringBuilderFactory.js">See also</a> |` : ``;
+const gitHubLink = `<a target="${isStackBlitz ? `_blank` : `_top`}" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>${
+  isStackBlitz ? `@GitHub`: `Back to repository page`}</b></a>`;
 !isStackBlitz && console.clear();
 const printHeader = () => {
   print(`!!${allProjectsLink}
-    <a target=_top href="https://stackblitz.com/edit/web-platform-k1jygm?file=StringBuilderFactory.js">See also</a> |
-    <a target="_blank" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>@GitHub</b></a>
+    ${gitHubLink}
     <p><button id="test">Run tests</button> <button id="perfBttn">performance</button></p>`);
 };
 const perfTest = () => {
