@@ -2,6 +2,7 @@ import $SB from "../index.js";
 import { strict as assert }  from "assert";
 const print = console.log.bind(console);
 const results = {failed: 0, succeeded: 0};
+let firstWord;
 const test = ({lambda, expected, expectedIsString = true, notEqual = false} = {}) => {
   const testFnStr = lambda.toString().trim().slice(6);
   const msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
@@ -16,10 +17,10 @@ const test = ({lambda, expected, expectedIsString = true, notEqual = false} = {}
   try {
     assert[testEq](testValue, expected);
     results.succeeded += 1;
-    return msg.concat(` OK!`);
+    return `\u{1F5F8} `.concat(msg);
   } catch(err) {
     results.failed += 1;
-    return `${msg} NOT OK!\n     Expected: "${err.expected}"; received: "${err.actual}"`;
+    return `\u2718 ${msg}\n     Expected: "${err.expected}"; received: "${err.actual}"`;
   }
 }
 $SB.addExtension(`userGetterTest`, instance => instance.value + ` got it`);
@@ -33,15 +34,15 @@ basicString.test = true;
 runTests();
 
 function runTests() {
-  const tests = allTests();
+  const tests = retrieveAllTests();
   print(`- The constructor is $SB`);
-  print(`- All tests use "basicString", assigned as\n    const basicString = $SB\`\`;`);
+  print(`- Some tests use a predefined instance, called "basicString", assigned as\n    const basicString = $SB\`\`;`);
   print(`- Instances can be created using a function call $SB(...) or tagged template $SB\`\``);
   print($SB`-`.repeat(20).value);
   Object.entries(tests).forEach(([block, tests], i) => {
       print(!i  ? `** ${block}` : `\n** ${block}`);
       Object.keys(tests).forEach(key => {
-        const tested = tests[key]();
+        const tested = test(tests[key]);
         print(`   * ${key} =>\n     ${tested}`);
       });
     }
@@ -50,213 +51,199 @@ function runTests() {
   print(`${$SB`-`.repeat(20)}\nTests failed: ${results.failed}\nTests succeeded: ${results.succeeded}`)
 }
 
-function allTests() {
-  let firstWord;
+function retrieveAllTests() {
   return {
-    "By contract: only strings or numbers can be input for the constructor": {
-      "Object literal": () => test({lambda: () => basicString.as({}), expected: `{}`, notEqual: true}),
-      "Object literal returns empty string": () => test({lambda: () => basicString, expected: ``}),
-      "Array literal": () => test({lambda: () => basicString.as([]), expected: `[]`, notEqual: true}),
-      "Array literal returns empty string": () => test({lambda: () => basicString, expected: ``}),
-      "RegExp literal": () => test({lambda: () => basicString.as(/[a-z]/gi), expected: `/[a-z]/gi`, notEqual: true}),
-      "RegExp literal returns empty string": () => test({lambda: () => basicString.as(/[a-z]/gi), expected: ``}),
-      "null": () => test({lambda: () => basicString.as(null), expected: `null`, notEqual: true}),
-      "null returns empty string": () => test({lambda: () => basicString.as(null), expected: ``}),
-      "undefined returns empty string": () => test({lambda: () => basicString.as(undefined), expected: ``}),
-      "Number": () => test({lambda: () => basicString.as(42), expected: `42`}),
-      "String literal (template tag)": () => test({lambda: () => basicString.as`I am ok`, expected: `I am ok`}),
-      "String literal (function call)": () => test({lambda: () => basicString.as(`I am ok`), expected: `I am ok`}),
-      "Empty String literal (template tag)": () => test({lambda: () => basicString.as``, expected: ``}),
-    },
-    "Native (non deprecated) String methods": {
-      "at": () => test({lambda: () => basicString.as(442).at(1), expected: `4`}),
-      "charAt": () => test({lambda: () => basicString.as`442`.charAt(1), expected: `4`}),
-      "charCodeAt": () => test({
-        lambda: () => basicString.as`hellö`.charCodeAt(4),
-        expectedIsString: false,
-        expected: 246
-      }),
-      "codePointCodeAt": () => test({
-        lambda: () => basicString.as`hell😁`.codePointAt(4),
-        expected: 128513,
-        expectedIsString: false
-      }),
-      "concat": () => test({lambda: () => basicString.concat`😁`, expected: `hell😁😁`}),
-      "endsWith": () => test({lambda: () => basicString.endsWith`😁`, expectedIsString: false, expected: true}),
-      "includes": () => test({lambda: () => basicString.includes`😁`, expectedIsString: false, expected: true}),
-      "indexOf": () => test({lambda: () => basicString.indexOf(`l`), expectedIsString: false, expected: 2}),
-      "indexOf (fromIndex)":
-        () => test({lambda: () => basicString.indexOf(`l`, 5), expectedIsString: false, expected: undefined}),
-      "indexOf (override: return undefined if not found)": () => test({
-        lambda: () => basicString.indexOf(`z`),
-        expectedIsString: false,
-        expected: undefined
-      }),
-      "indexOf (override can use regular expression)": () => test({
-        lambda: () => basicString.as`Hello World`.indexOf(/\W/),
-        expectedIsString: false,
-        expected: 5
-      }),
-      "indexOf (regular expression, fromIndex)": () => test({
-        lambda: () => basicString.as`Hello World`.indexOf(/\W/, 4),
-        expectedIsString: false,
-        expected: 5
-      }),
-      "isWellFormed": () => test({lambda: () => basicString.isWellFormed(), expectedIsString: false, expected: true}),
-      "isWellFormed (not)": () => test({
-        lambda: () => basicString.clone.as`\uDFFFab`.isWellFormed(),
-        expectedIsString: false,
-        expected: false
-      }),
-      "lastIndexOf":
-        () => test({lambda: () => basicString.lastIndexOf(`l`), expectedIsString: false, expected: 9}),
-      "lastIndexOf (position)":
-        () => test({lambda: () => basicString.lastIndexOf(`l`, 7), expectedIsString: false, expected: 3}),
-      "lastIndexOf (override: return undefined if nothing found)": () => test({
-        lambda: () => basicString.lastIndexOf(`x`),
-        expectedIsString: false,
-        expected: undefined
-      }),
-      "lastIndexOf (override: can use regular expression)": () => test({
-        lambda: () => basicString.lastIndexOf(/\W/),
-        expectedIsString: false,
-        expected: 5
-      }),
-      "lastIndexOf (regular expression and position)": () => test({
-        lambda: () => basicString.lastIndexOf(/\W/, 6),
-        expectedIsString: false,
-        expected: 5
-      }),
-      "lastIndexOf (regular expression and (impossible) position)": () => test({
-        lambda: () => basicString.lastIndexOf(/\W/, 4),
-        expectedIsString: false,
-        expected: undefined
-      }),
-      "localeCompare": () => test({
-        lambda: () => basicString.as`ö`.localeCompare(`ö`),
-        expectedIsString: false,
-        expected: 0
-      }),
-      "match": () => test({
-        lambda: () => basicString.as`hello`.match(/l/g).length,
-        expectedIsString: false,
-        expected: 2
-      }),
-      "matchAll": () => test({
-        lambda: () => basicString.repeat(3).matchAll(/ll/g).next().value.index,
-        expectedIsString: false,
-        expected: 2
-      }),
-      "normalize": () => test({
-        lambda: () => basicString.as`\u0041\u006d\u00e9\u006c\u0069\u0065`.normalize(),
-        expected: `Amélie`
-      }),
-      "padEnd": () => test({lambda: () => basicString.padEnd(basicString.length + 1, `*`), expected: `Amélie*`}),
-      "padStart": () => test({lambda: () => basicString.padStart(basicString.length + 1, `*`), expected: `*Amélie*`}),
-      "repeat": () => test({lambda: () => basicString.as`😁`.repeat(2), expected: `😁😁`}),
-      "replace": () => test({lambda: () => basicString.as(41).replace(`1`, 2), expected: `42`}),
-      "replaceAll": () => test({
-        lambda: () => basicString.as("hello").repeat(2).replaceAll(`hello`, `hello world`),
-        expected: `hello worldhello world`
-      }),
-      "slice": () => test({lambda: () => basicString.as(442).slice(1), expected: `42`}),
-      "split": () => test({lambda: () => basicString.as(442).split(``).join(`!`), expected: `4!4!2`}),
-      "startsWith": () => test({
-        lambda: () => basicString.as`hello`.startsWith`h`,
-        expectedIsString: false,
-        expected: true
-      }),
-      "substring": () => test({lambda: () => basicString.substring(1), expected: `ello`}),
-      "toLocaleLowerCase": () => test({
-        lambda: () => basicString.as`İstanbul`.toLocaleLowerCase(`tr`),
-        expected: `i̇stanbul`
-      }),
-      "toLocaleUpperCase": () => test({
-        lambda: () => basicString.as('Gesäß').toLocaleUpperCase(`de`),
-        expected: `GESÄSS`
-      }),
-      "toLowerCase()": () => test({lambda: () => basicString.as`HELlo`.toLowerCase(), expected: `hello`}),
-      "toUpperCase()": () => test({lambda: () => basicString.toUpperCase(), expected: `HELLO`}),
-      "toWellFormed": () => test({lambda: () => basicString.as`ab\uD83D\uDE04c`.toWellFormed(), expected: `ab😄c`}),
-      "trim": () => test({lambda: () => basicString.as`  hithere  `.trim(), expected: `hithere`}),
-      "trimEnd": () => test({lambda: () => basicString.as`  hithere  `.trimEnd(), expected: `  hithere`}),
-      "trimStart": () => test({lambda: () => basicString.trimStart(), expected: `hithere`}),
+    "By contract: only (template) strings or numbers can be input for the constructor.\n   Otherwise the instance string value is an empty string": {
+      "Template string is suitable": {lambda: () => $SB`I am ok`, expected: `I am ok`},
+      "String literal (function call) is suitable": {lambda: () => $SB(`I am ok`), expected: `I am ok`},
+      "Empty template string is suitable": {lambda: () => $SB``, expected: ``},
+      "Empty String literal (function call) is suitable": {lambda: () => $SB(``), expected: ``},
+      "Number is suitable": {lambda: () => $SB(42), expected: `42`},
+      "Object literal returns empty string": {lambda: () => $SB({foo: 1}), expected: ``},
+      "Array literal returns empty string": {lambda: () => $SB([1, 2, 3]), expected: ``},
+      "RegExp literal returns empty string": {lambda: () => $SB(/[a-z]/gi), expected: ``},
+      "null returns empty string": {lambda: () => $SB(null), expected: ``},
+      "undefined returns empty string": {lambda: () => $SB(undefined), expected: ``},
+      "no parameter returns empty string": {lambda: () => $SB(), expected: ``},
+      "Map returns empty string": {lambda: () => $SB(new Map), expected: ``},
+      "Function returns empty string": { lambda: () => $SB(() => {}), expected: `` },
     },
     "Custom instance methods": {
-      "append": () => test({lambda: () => basicString.clear.append`test123`, expected: `test123`}),
-      "as (alias for is)": () => test({lambda: () => basicString.as`test456`, expected: `test456`}),
-      "clear": () => test({lambda: () => basicString.clear, expected: ``}),
-      "clone": () => test({lambda: () => basicString.clone.as(`was cloned`), expected: `was cloned`}),
-      "basicString not mutated after clone": () => test({ lambda: () => basicString, expected: ``, }),
-      "cloneWith": () => test({lambda: () => basicString.cloneWith(`I Am Clone`), expected: `I Am Clone`}),
-      "basicString not mutated after cloneWith": () => test({ lambda: () => basicString, expected: `` }),
-      "empty": () => test({lambda: () => basicString.empty, expected: ``}),
-      "firstUp": () => test({lambda: () => basicString.as`HELlo`.firstUp, expected: `Hello`}),
-      "firstUp with diacrit": () => test({lambda: () => basicString.as`ünderscore`.firstUp, expected: `Ünderscore`}),
-      "initial": () => test({lambda: () => basicString.initial, expected: ``}),
-      "interpolate": () => test({
-        lambda: () => { const hi = {hi: `hello`}; return basicString.as`{hi}`.interpolate(hi); }, expected: `hello`}),
-      "interpolate multiple": () => test({
-        lambda: () => basicString.as`{hello}`.interpolate({hello: `hi `}, {hello: `there`}),
-        expected: `hi there`
-      }),
-      "is": () => test({lambda: () => basicString.is`test789`, expected: `test789`}),
-      "prepend": () => test({lambda: () => basicString.prepend`prepended to `, expected: `prepended to test789`}),
-      "quot": () => test({lambda: () => basicString.quot(`<,>`), expected: `<prepended to test789>`}),
-      "quot4Print": () => test({lambda: () => basicString.quot4Print(`>,<`), expected: `><prepended to test789><`}),
-      "quot4Print basicString not mutated": () => test({lambda: () => basicString, expected: `<prepended to test789>`}),
-      "remove": () => test({
-        lambda: () => basicString.remove(basicString.indexOf(`to`) - 1, -1),
-        expected: `<prepended>`
-      }),
-      "reset": () => test({lambda: () => basicString.reset, expected: ``}),
-      "surroundWith": () => test({
-        lambda: () => basicString.surroundWith({l: `hello `, r: `world`}),
-        expected: `hello world`
-      }),
-      "toCamel": () => test({
-        lambda: () => basicString.as`data-set-to-camel-case`.toCamel,
-        expected: `dataSetToCamelCase`
-      }),
-      "toDashed": () => test({lambda: () => basicString.toDashed, expected: `data-set-to-camel-case`}),
-      "toLower": () => test({lambda: () => basicString.as`HellO`.toLower, expected: `hello`}),
-      "toUpper": () => test({lambda: () => basicString.toUpper, expected: `HELLO`}),
-      "truncate": () => test({
-        lambda: () => basicString.as`way too long this`.truncate(15),
+      "[instance].append": {lambda: () => $SB``.append`test123`, expected: `test123`},
+      "[instance].as (alias for is)": {lambda: () => $SB`test456`, expected: `test456`},
+      "[instance].clear": {lambda: () => $SB`hello`.clear, expected: ``},
+      "[instance].clone": {lambda: () => basicString.clone.as`was cloned`, expected: `was cloned`},
+      "basicString not mutated after clone": {lambda: () => basicString, expected: ``,},
+      "[instance].cloneWith": {lambda: () => basicString.cloneWith(`I Am Clone`), expected: `I Am Clone`},
+      "basicString not mutated after cloneWith": {lambda: () => basicString, expected: ``},
+      "[instance].empty": {lambda: () => $SB`hello`.empty, expected: ``},
+      "[instance].firstUp": {lambda: () => $SB`HELlo`.firstUp, expected: `Hello`},
+      "[instance].firstUp with diacrit": {lambda: () => $SB`ünderscore`.firstUp, expected: `Ünderscore`},
+      "[instance].initial": {lambda: () => basicString.initial, expected: ``},
+      "[instance].interpolate": { lambda: () => { const hi = {hi: `hello`}; return $SB`{hi}`.interpolate(hi); }, expected: `hello` },
+      "[instance].interpolate multiple": { lambda: () => $SB`{hello}`.interpolate({hello: `hi `}, {hello: `there`}), expected: `hi there` },
+      "[instance].is": {lambda: () => $SB``.is`test789`, expected: `test789`},
+      "[instance].prepend": {lambda: () => $SB`test789`.prepend`prepended to `, expected: `prepended to test789`},
+      "[instance].quot": {lambda: () => $SB`test`.quot(`<,>`), expected: `<test>`},
+      "[instance].quot4Print": {lambda: () => basicString.as`<test>`.quot4Print(`>,<`), expected: `><test><`},
+      "[instance].quot4Print basicString not mutated": {lambda: () => basicString, expected: `<test>`},
+      "[instance].remove": { lambda: () => basicString.as`test789`.prepend`prepended to `.remove(basicString.indexOf(`to`), -7), expected: `prepended test789`},
+      "[instance].reset": {lambda: () => basicString.reset, expected: ``},
+      "[instance].surroundWith": { lambda: () => basicString.surroundWith({l: `hello `, r: `world`}), expected: `hello world` },
+      "[instance].toCamel": { lambda: () => $SB`data-set-to-camel-case`.toCamel, expected: `dataSetToCamelCase` },
+      "[instance].toDashed": {lambda: () => $SB`dataSetToCamelCase`.toDashed, expected: `data-set-to-camel-case`},
+      "[instance].toLower": {lambda: () => $SB`HellO`.toLower, expected: `hello`},
+      "[instance].toUpper": {lambda: () => $SB`HellO`.toUpper, expected: `HELLO`},
+      "[instance].truncate": {
+        lambda: () => $SB`way too long this`.truncate(15),
         expected: `way too long th...`
-      }),
-      "truncate for html": () => test({
-        lambda: () => basicString.as`way too long this`.truncate(15, {html: true}),
+      },
+      "[instance].truncate for html (&hellip; instead of ...)": {
+        lambda: () => $SB`way too long this`.truncate(15, {html: true}),
         expected: `way too long th&hellip;`
-      }),
-      "truncate on nearest word boundary": () => test({
-        lambda: () => basicString.as`way too long this`.truncate(15, {wordBoundary: true}),
+      },
+      "[instance].truncate on nearest word boundary": {
+        lambda: () => $SB`way too long this`.truncate(15, {wordBoundary: true}),
         expected: `way too long...`
-      }),
-      "value (get)": () => test({lambda: () => basicString.value, expected: `way too long...`}),
-      "value (set)": () => test({
+      },
+      "[instance].value (get)": {lambda: () => $SB`hello`.value, expected: `hello`},
+      "[instance].value (set)": {
         lambda: () => (basicString.value = `hello again`, basicString),
         expected: `hello again`
-      }),
-      "wordsUp": () => test({lambda: () => basicString.as`hello WORLD again`.wordsUp, expected: `Hello World Again`}),
-      "wordsUp with diacrits/non word characters": () => test({
-        lambda: () => basicString.as`hello-[WORLD] (ägain)`.wordsUp,
+      },
+      "[instance].wordsUp": {lambda: () => $SB`hello WORLD again`.wordsUp, expected: `Hello World Again`},
+      "[instance].wordsUp with diacrits/non word characters": {
+        lambda: () => $SB`hello-[WORLD] (ägain)`.wordsUp,
         expected: `Hello-[World] (Ägain)`
-      }),
+      },
     },
     "User defined extensions": {
       "$SB.addExtension(`userGetterTest`, instance => instance.value + ` got it`)":
-        () => test({lambda: () => basicString.as`ok`.userGetterTest, expected: `ok got it`}),
+        {lambda: () => $SB`ok`.userGetterTest, expected: `ok got it`},
       "$SB.addExtension(`userMethodTest`, (instance, extraText) => instance.value + extraText)":
-        () => test({lambda: () => basicString.userMethodTest(` and bye!`), expected: `ok got it and bye!`}),
-      "$SB.addExtension(`toCodeElement`, (instance, codeText) => instance.is(`<code>${codeText}</code>`))":
-        () => test({lambda: () => basicString.toCodeElement(`const test123;`), expected: `<code>const test123;</code>`}),
-      "$SB.addExtension(`italic`, instance => instance.is(`<i>${instance.value}</i>`));":
-        () => test({lambda: () => basicString.as`Hello World`.italic, expected: `<i>Hello World</i>`}),
+        {lambda: () => $SB`ok`.userGetterTest.userMethodTest(` and bye!`), expected: `ok got it and bye!`},
+      "$SB.addExtension(`toCodeElement`, (instance, codeText) => instance.is(`&lt;code>${codeText}&lt;/code>`))":
+        {lambda: () => basicString.toCodeElement(`const test123;`), expected: `<code>const test123;</code>`},
+      "$SB.addExtension(`italic`, instance => instance.is(`&lt;i>${instance.value}&lt;/i>`));":
+        {lambda: () => $SB`Hello World`.italic, expected: `<i>Hello World</i>`},
       "$SB.addExtension(`clone2FirstWord`, instance => instance.value.slice(0, instance.indexOf(` `)), true);":
-        () => test({lambda: () => (firstWord = basicString.as`Hello World`.clone2FirstWord, firstWord), expected: `Hello`}),
+        {lambda: () => (firstWord = basicString.as`Hello World`.clone2FirstWord, firstWord), expected: `Hello`},
       "After .clone2FirstWord, basicString should not have changed":
-        () => test({lambda: () => basicString.value, expected: `Hello World`}),
+        {lambda: () => basicString.value, expected: `Hello World`},
+    },
+    "Native (non deprecated) String methods": {
+      "[instance].at": {lambda: () => $SB(442).at(1), expected: `4`},
+      "[instance].charAt": {lambda: () => $SB`442`.charAt(1), expected: `4`},
+      "[instance].charCodeAt": {
+        lambda: () => $SB`hellö`.charCodeAt(4),
+        expectedIsString: false,
+        expected: 246
+      },
+      "[instance].codePointCodeAt": {
+        lambda: () => $SB`hell😁`.codePointAt(4),
+        expected: 128513,
+        expectedIsString: false
+      },
+      "[instance].concat": {lambda: () => $SB`hell😁`.concat`😁`, expected: `hell😁😁`},
+      "[instance].endsWith": {lambda: () => $SB`hell😁`.endsWith`😁`, expectedIsString: false, expected: true},
+      "[instance].includes": {lambda: () => $SB`hell😁`.includes`😁`, expectedIsString: false, expected: true},
+      "[instance].indexOf": {lambda: () => $SB`hell😁`.indexOf(`l`), expectedIsString: false, expected: 2},
+      "[instance].indexOf (fromIndex)":
+        {lambda: () => $SB`hello`.indexOf(`l`, 5), expectedIsString: false, expected: undefined},
+      "[instance].indexOf (override: return undefined if not found)": {
+        lambda: () => $SB`hello`.indexOf(`z`),
+        expectedIsString: false,
+        expected: undefined
+      },
+      "[instance].indexOf (override can use regular expression)": {
+        lambda: () => $SB`Hello World`.indexOf(/\W/),
+        expectedIsString: false,
+        expected: 5
+      },
+      "[instance].indexOf (regular expression, fromIndex)": {
+        lambda: () => $SB`Hello World`.indexOf(/\W/, 4),
+        expected: 5,
+        expectedIsString: false,
+      },
+      "[instance].isWellFormed": {lambda: () => basicString.isWellFormed(), expectedIsString: false, expected: true},
+      "[instance].isWellFormed (not)": {
+        lambda: () => $SB`\uDFFFab`.isWellFormed(),
+        expectedIsString: false,
+        expected: false
+      },
+      "[instance].lastIndexOf":
+        {lambda: () => $SB`Hello World`.lastIndexOf(`l`), expectedIsString: false, expected: 9},
+      "[instance].lastIndexOf (position)":
+        {lambda: () => $SB`Hello World`.lastIndexOf(`l`, 7), expectedIsString: false, expected: 3},
+      "[instance].lastIndexOf (override: return undefined if nothing found)": {
+        lambda: () => $SB`Hello World`.lastIndexOf(`x`),
+        expectedIsString: false,
+        expected: undefined
+      },
+      "[instance].lastIndexOf (override: can use regular expression)": {
+        lambda: () => $SB`Hello World`.lastIndexOf(/\W/),
+        expectedIsString: false,
+        expected: 5
+      },
+      "[instance].lastIndexOf (regular expression and position)": {
+        lambda: () => $SB`Hello World`.lastIndexOf(/\W/, 6),
+        expectedIsString: false,
+        expected: 5
+      },
+      "[instance].lastIndexOf (regular expression and (impossible) position)": {
+        lambda: () => $SB`Hello World`.lastIndexOf(/\W/, 4),
+        expectedIsString: false,
+        expected: undefined
+      },
+      "[instance].localeCompare": {
+        lambda: () => $SB`ö`.localeCompare(`ö`),
+        expectedIsString: false,
+        expected: 0
+      },
+      "[instance].match": {
+        lambda: () => $SB`hello`.match(/l/g).length,
+        expectedIsString: false,
+        expected: 2
+      },
+      "[instance].matchAll": {
+        lambda: () => $SB`hello`.repeat(3).matchAll(/ll/g).next().value.index,
+        expectedIsString: false,
+        expected: 2
+      },
+      "[instance].normalize": {
+        lambda: () => $SB`\u0041\u006d\u00e9\u006c\u0069\u0065`.normalize(),
+        expected: `Amélie`
+      },
+      "[instance].padEnd": {lambda: () => $SB`Amélie`.padEnd(7, `*`), expected: `Amélie*`},
+      "[instance].padStart": {lambda: () => $SB`Amélie*`.padStart(8, `*`), expected: `*Amélie*`},
+      "[instance].repeat": {lambda: () => $SB`😁`.repeat(3), expected: `😁😁😁`},
+      "[instance].replace": {lambda: () => $SB(41).replace(`1`, 2), expected: `42`},
+      "[instance].replaceAll": {
+        lambda: () => $SB("hello").repeat(2).replaceAll(`hello`, `hello world`),
+        expected: `hello worldhello world`
+      },
+      "[instance].slice": {lambda: () => $SB(442).slice(1), expected: `42`},
+      "[instance].split": {lambda: () => $SB(442).split(``).join(`!`), expected: `4!4!2`},
+      "[instance].startsWith": {
+        lambda: () => $SB`hello`.startsWith`h`,
+        expectedIsString: false,
+        expected: true
+      },
+      "[instance].substring": {lambda: () => $SB`hello`.substring(1), expected: `ello`},
+      "[instance].toLocaleLowerCase": {
+        lambda: () => $SB`GEsäSS`.toLocaleLowerCase(`de`),
+        expected: `gesäss`
+      },
+      "[instance].toLocaleUpperCase": {
+        lambda: () => $SB('Gesäß').toLocaleUpperCase(`de`),
+        expected: `GESÄSS`
+      },
+      "[instance].toLowerCase()": {lambda: () => $SB`HELlo`.toLowerCase(), expected: `hello`},
+      "[instance].toUpperCase()": {lambda: () => $SB`hello`.toUpperCase(), expected: `HELLO`},
+      "[instance].toWellFormed": {lambda: () => $SB`ab\uD83D\uDE04c`.toWellFormed(), expected: `ab😄c`},
+      "[instance].trim": {lambda: () => $SB`  hithere  `.trim(), expected: `hithere`},
+      "[instance].trimEnd": {lambda: () => $SB`  hithere  `.trimEnd(), expected: `  hithere`},
+      "[instance].trimStart": {lambda: () => $SB`  hithere  `.trimStart(), expected: `hithere  `},
     }
-  };
+  }
 }
