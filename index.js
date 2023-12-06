@@ -3,8 +3,13 @@ const interpolate = interpolateFactory();
 const userExtensions = {};
 let forTest = false;
 
-Object.defineProperty(StringBuilder, `describe`, { get() { return descriptionsGetter(); } });
-Object.defineProperty(StringBuilder, `addExtension`, { value: addUserExtension });
+Object.defineProperties(StringBuilder, {
+  describe: { get() { return descriptionsGetter(); } },
+  hasUserExtensions: { get() { return Object.keys(userExtensions).length > 0; } },
+  addExtension: { value: addUserExtension },
+  removeUsrExtension: { value: removeUserExtension },
+  removeAllUsrExtensions: { get() { return (removeAllUserExtensions(), true); } }
+});
 
 export { StringBuilder as default };
 
@@ -90,6 +95,16 @@ function reRouteNatives(instance, values) {
 function addUserExtension(name, fn, asClone = false) {
   fn.clone = asClone;
   userExtensions[name] = fn;
+}
+
+function removeUserExtension(name) {
+  if (name in userExtensions) {
+    delete userExtensions[name];
+  }
+}
+
+function removeAllUserExtensions(name) {
+  Object.keys(userExtensions).forEach(key => removeUserExtension(key));
 }
 
 function getExclusion() {
