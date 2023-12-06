@@ -47,7 +47,7 @@ function test({lambda, expected, expectedIsString = true, notEqual = false, thro
     const throwsProbe = assertThrows(lambda, expected);
     
     const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...threw, but not ${expected}`;
     results.succeeded += +isOk;
     results.failed += +!isOk;
     
@@ -91,7 +91,7 @@ function retrieveAllTests() {
     },
     "Custom instance methods": {
       "[instance].append": {lambda: () => $SB``.append`test123`, expected: `test123`},
-      "[instance].as (alias for is)": {lambda: () => $SB`test456`, expected: `test456`},
+      "[instance].as (alias for is)": {lambda: () => $SB``.as`test456`, expected: `test456`},
       "[instance].clear": {lambda: () => $SB`hello`.clear, expected: ``},
       "[instance].clone": {lambda: () => basicString.clone.as`was cloned`, expected: `was cloned`},
       "basicString not mutated after clone": {lambda: () => basicString, expected: ``,},

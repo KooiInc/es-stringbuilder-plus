@@ -62,7 +62,7 @@ function testThis({lambda, expected, expectedIsString = true, notEqual = false, 
   if (throws) {
     const throwsProbe = assert.throws(lambda, expected);
     const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...threw, but not ${expected}`;
     results.succeeded += +isOk;
     results.failed += +!!!isOk;
     
