@@ -288,7 +288,7 @@ function allTests() {
     "Miscellaneous": {
       "Instances are frozen": { lambda: () => Object.isFrozen($SB``), expected: true, expectedIsString: false},
       "Instances are frozen, so cannot add properties (throws TypeError)": {
-        lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypError`, dontEscapeHtml: true},
+        lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
       "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
       "[constructor].describe": {
         lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
