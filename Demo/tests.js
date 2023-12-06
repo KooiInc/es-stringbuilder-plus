@@ -19,12 +19,20 @@ export default function(print, $SB, $) {
       print(`!!<h3>${block}</h3>`);
       Object.keys(tests).forEach(key => {
         const tested = testThis(tests[key]);
-        print(`<span class="testKey">${key}</span> =><br>${tested.slice(0, 2)} <code>${$SB``.escHtml(tested.slice(3))}</code>`);
+        const notOk = /data-iserror/.test(tested);
+        const report = tests[key].dontEscapeHtml || notOk
+          ? $SB(tested.slice(3)) : `<code>${tested.slice(3).replace(/</g, `&lt;`)}</code>`;
+        print(`<span class="testKey${notOk ? ` error` : ``}">${
+          key}</span> =><br>${tested.slice(0, 2)} ${report}`);
       });
     }
   );
-  
-  $.Popup.show({content: `<div>Tests failed: ${results.failed}<br>Tests succeeded: ${results.succeeded}</div>`});
+  print(`!!<p>&nbsp;</p>`);
+  $.Popup.show({
+    content: $(`<div class="testKey">Tests succeeded: ${results.succeeded}</div>`)
+      .andThen(`<div class="testKey error">Tests failed: ${results.failed}</div>`),
+    closeAfter: 4,
+  });
 }
 
 function assertFactory() {
@@ -35,13 +43,36 @@ function assertFactory() {
     },
     notEqual(expected, observed) {
       return expected !== observed ? ok : notOk(expected, observed);
+    },
+    throws(lambda, expected) {
+      try { return lambda(); }
+      catch(err) { return err.name === expected
+        ? { isOk: true, message: err.message, type: err.name }
+        : { isOk: false, type: err.name }
+      }
     }
   };
-};
+}
 
-function testThis({lambda, expected, expectedIsString = true, notEqual = false} = {}) {
+function testThis({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) {
   const testFnStr = lambda.toString().trim().slice(6);
-  const msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
+  let msg = !throws ? `${testFnStr} ${
+    notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }` : ``;
+  
+  if (throws) {
+    const throwsProbe = assert.throws(lambda, expected);
+    const isOk = throwsProbe.isOk && expected === throwsProbe.type;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    results.succeeded += +isOk;
+    results.failed += +!!!isOk;
+    
+    return isOk
+      ? `\u{1F44D} `.concat(`<code>${msg}</code>`)
+         .concat(`<div class="testSubMsg">"${throwsProbe.message}"</div>`)
+      : `\u{1F44E} <code>${msg}</code>`
+        .concat(`<div class="testSubMsg data-iserror">Expected: ${expected}, observed: ${
+          throwsProbe.type}</div>`);
+  }
   
   const testValue = expectedIsString ? lambda().toString() : lambda();
   const testEq = notEqual ? `notEqual` : `equal`;
@@ -53,7 +84,8 @@ function testThis({lambda, expected, expectedIsString = true, notEqual = false} 
   }
   
   results.failed += 1;
-  return `\u{1F44E} ${msg}\n     Expected: "${doTest.expected}"; observed: "${doTest.observed}"`;
+  
+  return `\u{1F44E} <code>${msg}</code><div class="testSubMsg" data-iserror>Expected: "${doTest.expected}"; observed: "${doTest.observed}"</div>`;
 }
 
 function allTests() {
@@ -252,6 +284,27 @@ function allTests() {
       "[instance].trim": {lambda: () => $SB`  hithere  `.trim(), expected: `hithere`},
       "[instance].trimEnd": {lambda: () => $SB`  hithere  `.trimEnd(), expected: `  hithere`},
       "[instance].trimStart": {lambda: () => $SB`  hithere  `.trimStart(), expected: `hithere  `},
+    },
+    "Miscellaneous": {
+      "Instances are frozen": { lambda: () => Object.isFrozen($SB``), expected: true, expectedIsString: false},
+      "Instances are frozen, so cannot add properties (throws TypeError)": {
+        lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypError`, dontEscapeHtml: true},
+      "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
+      "[constructor].describe": {
+        lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
+        expected: true,
+        expectedIsString: false
+      },
+      "[constructor].removeUsrExtension": {
+        lambda: () => { $SB.removeUsrExtension(`clone2FirstWord`); return $SB``.cloneFirstWord; },
+        expected: undefined,
+        expectedIsString: false
+      },
+      "[constructor].removeAllUsrExtensions": {
+        lambda: () => { $SB.removeAllUsrExtensions; return $SB.hasUserExtensions },
+        expected: false,
+        expectedIsString: false
+      }
     }
   }
 }

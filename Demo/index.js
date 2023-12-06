@@ -1,25 +1,22 @@
 import $SB from "../index.js";
 import testRunner from "./tests.js";
 import {logFactory, $} from "./SBHelpers.bundled.js";
-
-$SB.addExtension(`code`, (instance, str, ...args) =>
-  instance.as(str ?? instance.value, ...args).surroundWith({l: `<code>`, r: `</code>`}));
-$SB.addExtension(`codeBlock`, (instance, str, ...args) =>
-  instance.as(str ?? instance.value, ...args).surroundWith({l: `<code class="codeblock">`, r: `</code>` }));
-$SB.addExtension(`escHtml`, (instance, str) => instance.as((str ?? instance.value).replace(/</g, `&lt;`)), true);
 window.$SB = $SB; // use in console for testing
-const $c = $SB``;
+let $c;
 const { log: print, logTop } = logFactory();
 const printQuoted = str => `"${str}"`;
 const escHtml = str => str.replace(/</g, `&lt;`);
 const spacer = _ => print(`!!<p>&nbsp;</p>`);
 const isStackBlitz = /stackblitz/i.test(location.href);
 const allProjectsLink = isStackBlitz
-  ? `<a target="_top" href="//stackblitz.com/@KooiInc">All projects</a> | <a target=_top href="https://stackblitz.com/edit/web-platform-k1jygm?file=StringBuilderFactory.js">See also</a> |` : ``;
-const gitHubLink = `<a target="${isStackBlitz ? `_blank` : `_top`}" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>${
+  ? `<a target="_top" href="//stackblitz.com/@KooiInc">All projects</a>
+     | <a target=_top href="https://stackblitz.com/edit/web-platform-k1jygm?file=StringBuilderFactory.js">See also</a> |`
+  : ``;
+const gitHubLink = `<a target="${
+  isStackBlitz ? `_blank` : `_top`}" href="https://github.com/KooiInc/es-stringbuilder-plus"><b>${
   isStackBlitz ? `@GitHub`: `Back to repository page`}</b></a>`;
 !isStackBlitz && console.clear();
-const printHeader = () => {
+const printTopLinks = () => {
   print(`!!${allProjectsLink}
     ${gitHubLink}
     <p><button id="test">Run tests</button> <button id="perfBttn">performance</button></p>`);
@@ -40,7 +37,9 @@ $.delegate(`click`, `#test, #back2Main, #perfBttn`, evt =>
 demo();
 
 function demo() {
-  printHeader();
+  printTopLinks();
+  initUserExtensions();
+  $c = $SB``;
   const header = $SB`!!<h2>ES Stringbuilder PLUS</h2>`
     .append`<div class="q">
       In many other languages, a programmer can choose to explicitly use a string view or a
@@ -247,6 +246,14 @@ function testPerformance(n = 100_000) {
   $.Popup.show({content: result});
 }
 
+function initUserExtensions() {
+  $SB.addExtension(`code`, (instance, str, ...args) =>
+    instance.as(str ?? instance.value, ...args).surroundWith({l: `<code>`, r: `</code>`}));
+  $SB.addExtension(`codeBlock`, (instance, str, ...args) =>
+    instance.as(str ?? instance.value, ...args).surroundWith({l: `<code class="codeblock">`, r: `</code>` }));
+  $SB.addExtension(`escHtml`, (instance, str) => instance.as((str ?? instance.value).replace(/</g, `&lt;`)), true);
+}
+
 function codeBlocks2Code() {
   const codeReplacements = new Map( [
     [`<`, `&lt;`],
@@ -297,6 +304,8 @@ function styleIt() {
       font-family: monospace;
     }`,
     `.testKey { font-family: "courier new"; color: green; font-weight: bold; }`,
+    `.testKey.error { color: red; }`,
+    `.testSubMsg { color: #999; margin-left: 1.5rem; }`,
     `code.language-javascript { background-color: transparent; }`,
     `i.red {color: red}`,
     `div.q::after {
