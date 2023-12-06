@@ -3,39 +3,6 @@ import { strict as assert }  from "assert";
 const print = console.log.bind(console);
 const results = {failed: 0, succeeded: 0};
 let firstWord;
-const test = ({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) => {
-  const testFnStr = lambda.toString().trim().slice(6);
-  let msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
-  
-  if (throws) {
-    const throwsProbe = assertThrows(lambda, expected);
-    
-    const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
-    results.succeeded += +isOk;
-    results.failed += +!!!isOk;
-    
-    return isOk
-      ? `\u{1F5F8} `.concat(`${msg}`).concat(`\n        "${throwsProbe.message}"`)
-      : `\u2718 ${msg}`
-        .concat(`\n        Expected: ${expected}, observed: ${
-          throwsProbe.type}`);
-  }
-  
-  const testValue = throws ? lambda : expectedIsString ? lambda().toString() : lambda();
-  const kindOfTest = throws ? `throws` : notEqual ? `notEqual` : `equal`;
-  expected = throws ? {} : expected;
-  
-  try {
-    const result = assert[kindOfTest](testValue, expected);
-    throws && console.log(result || `wtf`);
-    results.succeeded += 1;
-    return `\u{1F5F8} `.concat(msg);
-  } catch(err) {
-    results.failed += 1;
-    return `\u2718 ${msg}\n     Expected: "${err.expected}"; received: "${err.actual}"`;
-  }
-}
 $SB.addExtension(`userGetterTest`, instance => instance.value + ` got it`);
 $SB.addExtension(`userMethodTest`, (instance, extraText) => instance.value + extraText);
 $SB.addExtension(`toCodeElement`, (instance, codeText) => instance.is(`<code>${codeText}</code>`));
@@ -43,7 +10,6 @@ $SB.addExtension(`italic`, instance => instance.is(`<i>${instance.value}</i>`));
 $SB.addExtension(`clone2FirstWord`, instance => instance.value.slice(0, instance.indexOf(` `)), true);
 const basicString = $SB``;
 basicString.test = true;
-
 runTests();
 
 function assertThrows(lambda, expected) {
@@ -71,6 +37,39 @@ function runTests() {
   );
   
   print(`${$SB`-`.repeat(20)}\nTests failed: ${results.failed}\nTests succeeded: ${results.succeeded}`)
+}
+
+function test({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) {
+  const testFnStr = lambda.toString().trim().slice(6);
+  let msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
+  
+  if (throws) {
+    const throwsProbe = assertThrows(lambda, expected);
+    
+    const isOk = throwsProbe.isOk && expected === throwsProbe.type;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    results.succeeded += +isOk;
+    results.failed += +!isOk;
+    
+    return isOk
+      ? `\u{1F5F8} `.concat(`${msg}`).concat(`\n        "${throwsProbe.message}"`)
+      : `\u2718 ${msg}`
+        .concat(`\n        Expected: ${expected}, observed: ${
+          throwsProbe.type}`);
+  }
+  
+  const testValue = throws ? lambda : expectedIsString ? lambda().toString() : lambda();
+  const kindOfTest = throws ? `throws` : notEqual ? `notEqual` : `equal`;
+  expected = throws ? {} : expected;
+  
+  try {
+    const result = assert[kindOfTest](testValue, expected);
+    results.succeeded += 1;
+    return `\u{1F5F8} `.concat(msg);
+  } catch(err) {
+    results.failed += 1;
+    return `\u2718 ${msg}\n     Expected: "${err.expected}"; received: "${err.actual}"`;
+  }
 }
 
 function retrieveAllTests() {
