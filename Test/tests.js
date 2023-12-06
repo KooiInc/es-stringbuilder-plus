@@ -3,19 +3,32 @@ import { strict as assert }  from "assert";
 const print = console.log.bind(console);
 const results = {failed: 0, succeeded: 0};
 let firstWord;
-const test = ({lambda, expected, expectedIsString = true, notEqual = false} = {}) => {
+const test = ({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) => {
   const testFnStr = lambda.toString().trim().slice(6);
-  const msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
+  let msg = `${testFnStr} ${notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }`;
   
-  if (expected === `undefined`) {
-    results.failed += 1;
-    return `${msg} NOT OK! not expected value given)`;
+  if (throws) {
+    const throwsProbe = assertThrows(lambda, expected);
+    
+    const isOk = throwsProbe.isOk && expected === throwsProbe.type;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    results.succeeded += +isOk;
+    results.failed += +!!!isOk;
+    
+    return isOk
+      ? `\u{1F5F8} `.concat(`${msg}`).concat(`\n        "${throwsProbe.message}"`)
+      : `\u2718 ${msg}`
+        .concat(`\n        Expected: ${expected}, observed: ${
+          throwsProbe.type}`);
   }
   
-  const testValue = expectedIsString ? lambda().toString() : lambda();
-  const testEq = notEqual ? `notEqual` : `equal`;
+  const testValue = throws ? lambda : expectedIsString ? lambda().toString() : lambda();
+  const kindOfTest = throws ? `throws` : notEqual ? `notEqual` : `equal`;
+  expected = throws ? {} : expected;
+  
   try {
-    assert[testEq](testValue, expected);
+    const result = assert[kindOfTest](testValue, expected);
+    throws && console.log(result || `wtf`);
     results.succeeded += 1;
     return `\u{1F5F8} `.concat(msg);
   } catch(err) {
@@ -32,6 +45,15 @@ const basicString = $SB``;
 basicString.test = true;
 
 runTests();
+
+function assertThrows(lambda, expected) {
+  try { return lambda(); }
+  catch(err) {
+    return err.name === expected
+      ? { isOk: true, message: err.message, type: err.name }
+      : { isOk: false, type: err.name }
+  }
+}
 
 function runTests() {
   const tests = retrieveAllTests();
@@ -244,6 +266,27 @@ function retrieveAllTests() {
       "[instance].trim": {lambda: () => $SB`  hithere  `.trim(), expected: `hithere`},
       "[instance].trimEnd": {lambda: () => $SB`  hithere  `.trimEnd(), expected: `  hithere`},
       "[instance].trimStart": {lambda: () => $SB`  hithere  `.trimStart(), expected: `hithere  `},
+    },
+    "Miscellaneous": {
+      "Instances are frozen": { lambda: () => Object.isFrozen($SB``), expected: true, expectedIsString: false},
+      "Instances are frozen, so cannot add properties (throws TypeError)": {
+        lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
+      "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
+      "[constructor].describe": {
+        lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
+        expected: true,
+        expectedIsString: false
+      },
+      "[constructor].removeUsrExtension": {
+        lambda: () => { $SB.removeUsrExtension(`clone2FirstWord`); return $SB``.cloneFirstWord; },
+        expected: undefined,
+        expectedIsString: false
+      },
+      "[constructor].removeAllUsrExtensions": {
+        lambda: () => { $SB.removeAllUsrExtensions; return $SB.hasUserExtensions },
+        expected: false,
+        expectedIsString: false
+      }
     }
-  }
+  };
 }
