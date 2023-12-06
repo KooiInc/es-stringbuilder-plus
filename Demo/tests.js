@@ -110,7 +110,7 @@ function allTests() {
     },
     "Custom instance methods": {
       "[instance].append": {lambda: () => $SB``.append`test123`, expected: `test123`},
-      "[instance].as (alias for is)": {lambda: () => $SB`test456`, expected: `test456`},
+      "[instance].as (alias for is)": {lambda: () => $SB``.as`test456`, expected: `test456`},
       "[instance].clear": {lambda: () => $SB`hello`.clear, expected: ``},
       "[instance].clone": {lambda: () => basicString.clone.as`was cloned`, expected: `was cloned`},
       "basicString not mutated after clone": {lambda: () => basicString, expected: ``,},
