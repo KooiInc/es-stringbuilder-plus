@@ -205,6 +205,10 @@ const tblHead = ${
   
   codeBlocks2Code();
   spacer();
+  self.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
 }
 
 function describe2HTML() {
