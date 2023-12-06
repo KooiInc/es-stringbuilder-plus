@@ -207,7 +207,7 @@ const tblHead = ${
   spacer();
   self.scrollTo({
     top: 0,
-    behavior: 'smooth'
+    behavior: 'smooth',
   });
 }
 

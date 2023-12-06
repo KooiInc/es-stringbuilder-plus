@@ -1,7 +1,8 @@
-const results = {failed: 0, succeeded: 0};
 const assert = assertFactory();
+let results;
 
 export default function(print, $SB, $) {
+  results = {failed: 0, succeeded: 0};
   $(`#log2screen`).clear();
   $SB.addExtension(`userGetterTest`, instance => instance.value + ` got it`);
   $SB.addExtension(`userMethodTest`, (instance, extraText) => instance.value + extraText);
@@ -62,13 +63,13 @@ function testThis({lambda, expected, expectedIsString = true, notEqual = false, 
   if (throws) {
     const throwsProbe = assert.throws(lambda, expected);
     const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...threw, but not ${expected}`;
+    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
     results.succeeded += +isOk;
-    results.failed += +!!!isOk;
+    results.failed += +!isOk;
     
     return isOk
       ? `\u{1F44D} `.concat(`<code>${msg}</code>`)
-         .concat(`<div class="testSubMsg">"${throwsProbe.message}"</div>`)
+        .concat(`<div class="testSubMsg">"${throwsProbe.message}"</div>`)
       : `\u{1F44E} <code>${msg}</code>`
         .concat(`<div class="testSubMsg data-iserror">Expected: ${expected}, observed: ${
           throwsProbe.type}</div>`);
@@ -110,7 +111,7 @@ function allTests() {
     },
     "Custom instance methods": {
       "[instance].append": {lambda: () => $SB``.append`test123`, expected: `test123`},
-      "[instance].as (alias for is)": {lambda: () => $SB``.as`test456`, expected: `test456`},
+      "[instance].as (alias for is)": {lambda: () => $SB`test456`, expected: `test456`},
       "[instance].clear": {lambda: () => $SB`hello`.clear, expected: ``},
       "[instance].clone": {lambda: () => basicString.clone.as`was cloned`, expected: `was cloned`},
       "basicString not mutated after clone": {lambda: () => basicString, expected: ``,},
