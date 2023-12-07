@@ -47,9 +47,8 @@ function assertFactory() {
     },
     throws(lambda, expected) {
       try { return lambda(); }
-      catch(err) { return err.name === expected
-        ? { isOk: true, message: err.message, type: err.name }
-        : { isOk: false, type: err.name }
+      catch(err) {
+        return { isOk: err.name === expected, message: err.message, type: err.name };
       }
     }
   };
@@ -63,13 +62,13 @@ function testThis({lambda, expected, expectedIsString = true, notEqual = false, 
   if (throws) {
     const throwsProbe = assert.throws(lambda, expected);
     const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...thrown, but not ${expected}`;
+    msg = isOk ? `${testFnStr} thrown ${expected} as expected` : ` thrown, but not ${expected}`;
     results.succeeded += +isOk;
     results.failed += +!isOk;
     
     return isOk
       ? `\u{1F44D} `.concat(`<code>${msg}</code>`)
-        .concat(`<div class="testSubMsg">"${throwsProbe.message}"</div>`)
+        .concat(`<div class="testSubMsg">With error message: "${throwsProbe.message}"</div>`)
       : `\u{1F44E} <code>${msg}</code>`
         .concat(`<div class="testSubMsg data-iserror">Expected: ${expected}, observed: ${
           throwsProbe.type}</div>`);

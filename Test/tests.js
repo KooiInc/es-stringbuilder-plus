@@ -47,12 +47,12 @@ function test({lambda, expected, expectedIsString = true, notEqual = false, thro
     const throwsProbe = assertThrows(lambda, expected);
     
     const isOk = throwsProbe.isOk && expected === throwsProbe.type;
-    msg = isOk ? `${testFnStr} ... thrown ${expected} with message` : `...threw, but not ${expected}`;
+    msg = isOk ? `${testFnStr} thrown ${expected} as expected` : ` thrown error, but not ${expected}`;
     results.succeeded += +isOk;
     results.failed += +!isOk;
     
     return isOk
-      ? `\u{1F5F8} `.concat(`${msg}`).concat(`\n        "${throwsProbe.message}"`)
+      ? `\u{1F5F8} `.concat(`${msg}`).concat(`\n        With error message: "${throwsProbe.message}"`)
       : `\u2718 ${msg}`
         .concat(`\n        Expected: ${expected}, observed: ${
           throwsProbe.type}`);
@@ -63,7 +63,7 @@ function test({lambda, expected, expectedIsString = true, notEqual = false, thro
   expected = throws ? {} : expected;
   
   try {
-    const result = assert[kindOfTest](testValue, expected);
+    assert[kindOfTest](testValue, expected);
     results.succeeded += 1;
     return `\u{1F5F8} `.concat(msg);
   } catch(err) {
@@ -269,7 +269,7 @@ function retrieveAllTests() {
     "Miscellaneous": {
       "Instances are frozen": { lambda: () => Object.isFrozen($SB``), expected: true, expectedIsString: false},
       "Instances are frozen, so cannot add properties (throws TypeError)": {
-        lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
+        lambda: () => {const t = $SB``; t.noCando = 42;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
       "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
       "[constructor].describe": {
         lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
