@@ -1,5 +1,6 @@
 import $SB from "../index.js";
 import { strict as assert }  from "assert";
+import StringBuilder from "../index.js";
 const print = console.log.bind(console);
 const results = {failed: 0, succeeded: 0};
 let firstWord;
@@ -10,6 +11,7 @@ $SB.addExtension(`italic`, instance => instance.is(`<i>${instance.value}</i>`));
 $SB.addExtension(`clone2FirstWord`, instance => instance.value.slice(0, instance.indexOf(` `)), true);
 const basicString = $SB``;
 basicString.test = true;
+const instanceProps = Object.getOwnPropertyDescriptors($SB``);
 runTests();
 
 function assertThrows(lambda, expected) {
@@ -27,6 +29,7 @@ function runTests() {
   print(`- Some tests use a predefined instance, called "basicString", assigned as\n    const basicString = $SB\`\`;`);
   print(`- Instances can be created using a function call $SB(...) or tagged template $SB\`\``);
   print($SB`-`.repeat(20).value);
+  
   Object.entries(tests).forEach(([block, tests], i) => {
       print(!i  ? `** ${block}` : `\n** ${block}`);
       Object.keys(tests).forEach(key => {
@@ -36,7 +39,46 @@ function runTests() {
     }
   );
   
+  testDescriptions();
+  
   print(`${$SB`-`.repeat(20)}\nTests failed: ${results.failed}\nTests succeeded: ${results.succeeded}`)
+}
+
+function testDescriptions() {
+  const dummy = $SB``;
+  const instanceProps = Object.getOwnPropertyDescriptors(dummy);
+  const descriptions = Object.entries($SB.describe)
+    .sort( ([key1,], [key2, ]) => key1.localeCompare(key2));
+  
+  print(`\n** [Constructor].describe`)
+  print(`   Using`)
+  print(`   [const instanceProps = Object.getOwnPropertyDescriptors($SB\`\`);]`);
+  print(`   [const descriptions = $SB.describe;] (entries, sorted on key)`)
+  print(`   [(entries)descriptions.forEach( ([key, descriptionItem]) => {...});]`);
+  print(`   For every descriptionItem of [$SB.describe] check if it's what we expect`);
+  
+  descriptions.forEach( ([key, descriptionItem]) => {
+    let tested = test( {lambda: () => key in instanceProps, expectedIsString: false, expected: true} );
+
+    print(`   * [${key}] =>\n     ${tested}`);
+    tested = test( {
+      lambda: () => descriptionItem.getter && `get` in instanceProps[key],
+      expectedIsString: false,
+      expected: descriptionItem.getter } );
+    print(`     - is getter =>\n       ${tested}`);
+    
+    tested = test( {
+      lambda: () => descriptionItem.method && `value` in instanceProps[key],
+      expectedIsString: false,
+      expected: descriptionItem.method ?? false } );
+    print(`     - is method =>\n       ${tested}`);
+    
+    tested = test( {
+      lambda: () => descriptionItem.override && key in String.prototype,
+      expectedIsString: false,
+      expected: descriptionItem.override } );
+    print(`     - is override of native String method/getter =>\n       ${tested}`);
+  });
 }
 
 function test({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) {
@@ -271,8 +313,8 @@ function retrieveAllTests() {
       "Instances are frozen, so cannot add properties (throws TypeError)": {
         lambda: () => {const t = $SB``; t.noCando = 42;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
       "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
-      "[constructor].describe": {
-        lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
+      "[constructor].describe.stringify": {
+        lambda: () => {const d = $SB.describe.stringify; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
         expected: true,
         expectedIsString: false
       },

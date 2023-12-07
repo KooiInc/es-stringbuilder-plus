@@ -1,3 +1,6 @@
+import $SB from "../index.js";
+import {$} from "./SBHelpers.bundled.js";
+
 const assert = assertFactory();
 let results;
 
@@ -22,42 +25,85 @@ export default function(print, $SB, $) {
         const tested = testThis(tests[key]);
         const notOk = /data-iserror/.test(tested);
         const report = tests[key].dontEscapeHtml || notOk
-          ? $SB(tested.slice(3)) : `<code>${tested.slice(3).replace(/</g, `&lt;`)}</code>`;
+          ? tested.slice(3) : `${cleanupTestResult(tested.slice(3))}`;
         print(`<span class="testKey${notOk ? ` error` : ``}">${
-          key}</span> =><br>${tested.slice(0, 2)} ${report}`);
+          key}</span><br>${tested.slice(0, 2)} ${report}`);
       });
     }
   );
+  testDescriptions(print, $SB);
   print(`!!<p>&nbsp;</p>`);
+  codeBlocks2Code();
   $.Popup.show({
-    content: $(`<div class="testKey">Tests succeeded: ${results.succeeded}</div>`)
-      .andThen(`<div class="testKey error">Tests failed: ${results.failed}</div>`),
+    content: $(`<div class="testKey popup">Tests succeeded: ${results.succeeded}</div>`)
+      .andThen(`<div class="testKey popup error">Tests failed: ${results.failed}</div>`),
     closeAfter: 4,
   });
 }
 
-function assertFactory() {
-  const [ok, notOk] = [{isOk: true}, (expected, observed) => ({isOk: false, expected, observed})];
-  return {
-    equal(expected, observed) {
-      return expected === observed ? ok : notOk(expected, observed);
-    },
-    notEqual(expected, observed) {
-      return expected !== observed ? ok : notOk(expected, observed);
-    },
-    throws(lambda, expected) {
-      try { return lambda(); }
-      catch(err) {
-        return { isOk: err.name === expected, message: err.message, type: err.name };
-      }
-    }
-  };
+function cleanupTestResult(testedStr) {
+  return testedStr.replace(/</g, `&lt;`).replace(/&lt;code|&lt;\/code/g, `<code`)
+}
+
+function testDescriptions(print, $SB) {
+  const instanceProps = Object.getOwnPropertyDescriptors($SB``);
+  const descriptions = Object.entries($SB.describe)
+    .sort( ([key1,], [key2, ]) => key1.localeCompare(key2));
+    const getResult = (tested, notOk, key, sub) => {
+    const report = $SB``
+      .append`<span class="testKey sub${notOk ? ` error` : ``}">${key}</span>`
+      .append`${tested.slice(0, 2)} ${tested.slice(3)}`
+      .prepend(sub ? `!!` : ``);
+    print(report.value);
+  }
+  
+  print(`!!<h3>[Constructor].describe</h3>`)
+  print($SB`!!Using:`
+    .append(`<code class="codeblock">const instanceProps = Object.getOwnPropertyDescriptors($SB\`\`);
+const descriptions = Object.entries($SB.describe)
+  .sort( ([key1,], [key2,]) => key1.localeCompare(key2));
+descriptions.forEach( ([key, descriptionItem]) => { /* run tests */ });</code>`)
+    .append(`<p>For every [<code>descriptionItem</code>] of <code>descriptions</code>
+        check if it's what we would expect for an instance.</p>`)
+    .value
+  );
+  
+  descriptions.forEach( ([key, descriptionItem]) => {
+    let tested = testThis( {
+      lambda: () => key in instanceProps,
+      expectedIsString: false,
+      expected: true} );
+    let notOk = /data-iserror/.test(tested);
+    getResult(tested, notOk, `descriptionItem for key "${key}"`);
+    
+    tested = testThis( {
+      lambda: () => (instanceProps[key].get ?? false) && descriptionItem.getter,
+      expectedIsString: false,
+      expected: descriptionItem.getter } );
+    notOk = /data-iserror/.test(tested);
+    getResult(tested, notOk, `.<i>${key}</i> is ${!descriptionItem.getter ? `not ` : ``} getter`, true);
+    
+    tested = testThis( {
+      lambda: () => (instanceProps[key] ?? false) && descriptionItem.method ,
+      expectedIsString: false,
+      expected: descriptionItem.method ?? false } );
+    notOk = /data-iserror/.test(tested);
+    getResult(tested, notOk, `[instance].${key} is ${!descriptionItem.method ? `not ` : ``} method`, true);
+    
+    tested = testThis( {
+      lambda: () => (String.prototype[key] ?? false) && descriptionItem.override,
+      expectedIsString: false,
+      expected: descriptionItem.override } );
+    notOk = /data-iserror/.test(tested);
+    getResult(tested, notOk, `.<i>${key}</i> is ${
+      !descriptionItem.override ? `not ` : ``} override of native String method/getter`, true);
+  });
 }
 
 function testThis({lambda, expected, expectedIsString = true, notEqual = false, throws = false} = {}) {
   const testFnStr = lambda.toString().trim().slice(6);
-  let msg = !throws ? `${testFnStr} ${
-    notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }` : ``;
+  let msg = !throws ? `<code>${testFnStr} ${
+    notEqual ? `!==` : `===`} ${ expectedIsString ? `"${expected}"` : expected }</code>` : ``;
   
   if (throws) {
     const throwsProbe = assert.throws(lambda, expected);
@@ -86,6 +132,24 @@ function testThis({lambda, expected, expectedIsString = true, notEqual = false, 
   results.failed += 1;
   
   return `\u{1F44E} <code>${msg}</code><div class="testSubMsg" data-iserror>Expected: "${doTest.expected}"; observed: "${doTest.observed}"</div>`;
+}
+
+function assertFactory() {
+  const [ok, notOk] = [{isOk: true}, (expected, observed) => ({isOk: false, expected, observed})];
+  return {
+    equal(expected, observed) {
+      return expected === observed ? ok : notOk(expected, observed);
+    },
+    notEqual(expected, observed) {
+      return expected !== observed ? ok : notOk(expected, observed);
+    },
+    throws(lambda, expected) {
+      try { return lambda(); }
+      catch(err) {
+        return { isOk: err.name === expected, message: err.message, type: err.name };
+      }
+    }
+  };
 }
 
 function allTests() {
@@ -129,7 +193,7 @@ function allTests() {
       "[instance].quot4Print basicString not mutated": {lambda: () => basicString, expected: `<test>`},
       "[instance].remove": { lambda: () => basicString.as`test789`.prepend`prepended to `.remove(basicString.indexOf(`to`), -7), expected: `prepended test789`},
       "[instance].reset": {lambda: () => basicString.reset, expected: ``},
-      "[instance].surroundWith": { lambda: () => basicString.surroundWith({l: `hello `, r: `world`}), expected: `hello world` },
+      "[instance].surroundWith": { lambda: () => basicString.surroundWith({l: `<hello `, r: `world>`}), expected: `<hello world>` },
       "[instance].toCamel": { lambda: () => $SB`data-set-to-camel-case`.toCamel, expected: `dataSetToCamelCase` },
       "[instance].toDashed": {lambda: () => $SB`dataSetToCamelCase`.toDashed, expected: `data-set-to-camel-case`},
       "[instance].toLower": {lambda: () => $SB`HellO`.toLower, expected: `hello`},
@@ -290,8 +354,8 @@ function allTests() {
       "Instances are frozen, so cannot add properties (throws TypeError)": {
         lambda: () => {const t = $SB``; t.noCando = 42; return t;}, throws: true, expected: `TypeError`, dontEscapeHtml: true},
       "[instance].nonExistingProperty": {lambda: () => $SB``.nonExistingProperty, expected: undefined, expectedIsString: false},
-      "[constructor].describe": {
-        lambda: () => {const d = $SB.describe; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
+      "[constructor].describe.stringify": {
+        lambda: () => {const d = $SB.describe.stringify; return Array.isArray(d) && /interpolate\(/.test(`${d}`);},
         expected: true,
         expectedIsString: false
       },
@@ -307,4 +371,25 @@ function allTests() {
       }
     }
   }
+}
+
+function codeBlocks2Code() {
+  const codeReplacements = new Map( [
+    [`<`, `&lt;`],
+    [`>`, `&gt;`],
+    [`&`, a => `&amp;${a[1]}`],
+    [`linebreak`, `\n<br>`],
+    [`reducebreaks`, `\n\n`] ] );
+  const allBlocks = $.nodes(`.codeblock`);
+  $.nodes(`code:not(.codeblock)`).forEach( cd => $(cd).addClass(`inline`));
+  allBlocks.forEach(block => {
+    block = $(block);
+    block.addClass(`language-javascript`).removeClass(`codeblock`);
+    
+    const pre = $.virtual(`<pre class="language-javascript line-numbers">${
+      block.HTML.get(1).trim()
+        .replace(/&[^lgtamp;]/g, codeReplacements.get(`&`))}</pre>`);
+    block.replaceWith(pre);
+  });
+  return Prism.highlightAll();
 }
