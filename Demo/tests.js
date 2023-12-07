@@ -42,7 +42,7 @@ export default function(print, $SB, $) {
 }
 
 function cleanupTestResult(testedStr) {
-  return testedStr.replace(/</g, `&lt;`).replace(/&lt;code|&lt;\/code/g, `<code`)
+  return testedStr.replace(/<([\/a-z]+)/gi, (a, b) => /code/i.test(b) ? a : `&lt;` + b);
 }
 
 function testDescriptions(print, $SB) {
