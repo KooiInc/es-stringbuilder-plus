@@ -212,7 +212,7 @@ const tblHead = ${
 }
 
 function describe2HTML() {
-  const descriptions = $SB.describe.map( v => {
+  const descriptions = $SB.describe.stringify.map( v => {
       const [key, descr] = v.split(`[`);
       return $c.code(`${key.trim()}`).append(` [${descr}`).value;
     }
@@ -308,7 +308,9 @@ function styleIt() {
       font-family: monospace;
     }`,
     `.testKey { font-family: "courier new"; color: green; font-weight: bold; }`,
-    `.testKey.error { color: red; }`,
+    `.testKey.sub, .testKey.sub.error { display: block; }`,
+    `.testKey:not(.popup):after { content: " =>" }`,
+    `.testKey.error, testKey.sub.error { color: red; }`,
     `.testSubMsg { color: #999; margin-left: 1.5rem; }`,
     `code.language-javascript { background-color: transparent; }`,
     `i.red {color: red}`,
