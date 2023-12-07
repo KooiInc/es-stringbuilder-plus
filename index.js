@@ -5,6 +5,7 @@ let forTest = false;
 
 Object.defineProperties(StringBuilder, {
   describe: { get() { return descriptionsGetter(); } },
+  //describeObj: { get() { return descriptionsObjGetter(); } },
   hasUserExtensions: { get() { return Object.keys(userExtensions).length > 0; } },
   addExtension: { value: addUserExtension },
   removeUsrExtension: { value: removeUserExtension },
@@ -244,36 +245,55 @@ function indexOfRE(str, findRegExp, beforeIndex) {
 }
 
 function descriptionsGetter() {
-  const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``));
+  const instanceProps = Object.entries(Object.getOwnPropertyDescriptors(StringBuilder``))
+    .filter( ([key, ]) => !/valueOf|toString/.test(key));
   const userXtensions = Object.keys(userExtensions);
   const allNatives = natives.chainable.concat(natives.valueReturn).filter( v => !/indexof/i.test(v) );
-  
-  return instanceProps
-    .map( ([key, descr]) => {
+  const allProps = {};
+  instanceProps
+    .forEach( ([key, descr]) => {
       if (/name|prototype|test/i.test(key) || allNatives.find(nkey => key === nkey)) { return; }
-      const props = [];
+      allProps[key] = {};
+      const props = allProps[key];
       const isValueReturn = /^(tostring|valueof|initial|length|indexof|lastindexof|clone|quot4Print)$/i.test(key);
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const argsClause = isMethod ? descr.value.toString().match(/(\(.+?\))/)?.shift() ?? `()` : ``;
-      
-      if (descr.get) { props.push(`getter`); }
-      if (descr.value) { props.push(`method`); }
-      if (/indexof/i.test(key)) { props.push(`native override`); }
-      if (isValueReturn) {
-        props.push(`value return (not mutating)`);
-        return `${key}${argsClause} [${props.join(`, `)}]`;
-      }
-      
       const methodStringified = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `).trim();
       const isUserExtension = userXtensions.find(ky => ky === key);
       const isChainable = isUserExtension || /return instance|^(empty|reset|is)/i.test(methodStringified);
+      props.callSign = `${key}${argsClause}`;
+      props.getter = `get` in descr;
+      props.method = `value` in descr;
+      props.setter = `set` in descr;
+      props.override = /indexof/i.test(key);
+      props.valueReturn = isValueReturn;
+      props.isUserExtension = isUserExtension;
+      props.isChainable = isChainable;
+      props.mutates = isChainable;
+    });
+    Object.defineProperty(allProps, `stringify`, {get() { return stringify(); } });
+    return allProps;
+    
+    function stringify() {
+      const result = [];
+      const checkFirst = (str) => /\[[a-z]/i.test(str) ? `, ` : ``;
+      const propsFiltered = Object.entries(allProps)
+        .filter( ([key,]) => key !== `stringify` );
+      propsFiltered.forEach( ([, prop]) => {
+        let propStr = StringBuilder`${prop.callSign} [`;
+        if (prop.getter) { propStr.append(`${checkFirst(propStr)}getter`); }
+        if (prop.setter) { propStr.append(`${checkFirst(propStr)}setter`); }
+        if (prop.method) { propStr.append(`${checkFirst(propStr)}method`); }
+        if (prop.override) { propStr.append(`${checkFirst(propStr)}native override`); }
+        if (prop.isUserExtension) { propStr.append(`${checkFirst(propStr)}user extension`); }
+        if (prop.valueReturn) { propStr.append(`${checkFirst(propStr)}value return (not mutating)`); }
+        if (prop.isChainable) { propStr.append(`${checkFirst(propStr)}chainable (mutates)`); }
+        if (prop.mutates && !prop.isChainable) { propStr.append(`${checkFirst(propStr)}mutates`); }
+        result.push(propStr.append`]`.value);
+      });
       
-      if (descr.set) { props.push(`setter (mutates)`); }
-      if (isUserExtension) { props.push (`user extension`) }
-      if (isChainable) { props.push(`chainable (mutates)`); }
-      
-      return `${key}${argsClause} [${props.join(`, `)}]`;
-    }).filter(v => v).sort( (a, b) => a.localeCompare(b) );
+      return result.sort( (a, b) => a.localeCompare(b) );
+    }
 }
 
 function interpolateFactory() {
