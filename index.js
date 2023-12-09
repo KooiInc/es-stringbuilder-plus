@@ -104,7 +104,7 @@ function removeUserExtension(name) {
   }
 }
 
-function removeAllUserExtensions(name) {
+function removeAllUserExtensions() {
   Object.keys(userExtensions).forEach(key => removeUserExtension(key));
 }
 
@@ -253,23 +253,15 @@ function descriptionsGetter() {
   instanceProps
     .forEach( ([key, descr]) => {
       if (/name|prototype|test/i.test(key) || allNatives.find(nkey => key === nkey)) { return; }
-      allProps[key] = {};
-      const props = allProps[key];
       const isValueReturn = /^(tostring|valueof|initial|length|indexof|lastindexof|clone|quot4Print)$/i.test(key);
       const isMethod = !descr.get && !descr.set && descr.value instanceof Function;
       const argsClause = isMethod ? descr.value.toString().match(/(\(.+?\))/)?.shift() ?? `()` : ``;
       const methodStringified = String(descr.get ?? descr.value).replace(/\s{2}/g, ` `).trim();
       const isUserExtension = userXtensions.find(ky => ky === key);
       const isChainable = isUserExtension || /return instance|^(empty|reset|is)/i.test(methodStringified);
-      props.callSign = `${key}${argsClause}`;
-      props.getter = `get` in descr;
-      props.method = `value` in descr;
-      props.setter = `set` in descr;
-      props.override = /indexof/i.test(key);
-      props.valueReturn = isValueReturn;
-      props.isUserExtension = isUserExtension;
-      props.isChainable = isChainable;
-      props.mutates = isChainable;
+      allProps[key] = {callSign: `${key}${argsClause}`, getter: `get` in descr, setter: `set` in descr,
+        method: `value` in descr, override: /indexof/i.test(key), valueReturn: isValueReturn,
+        isUserExtension, isChainable, mutates: isChainable};
     });
     Object.defineProperty(allProps, `stringify`, {get() { return stringify(); } });
     return allProps;
