@@ -19,7 +19,7 @@ export default function(print, $SB, $) {
     `Instances can be created using a function call <code>$SB(...) or tagged template <code>$SB\`...\`</code>`,);
   print(`!!<button id="back2Main">Back</button><hr>`);
   
-  Object.entries(tests).forEach(([block, tests], i) => {
+  Object.entries(tests).forEach(([block, tests]) => {
       print(`!!<h3>${block}</h3>`);
       Object.keys(tests).forEach(key => {
         const tested = testThis(tests[key]);
@@ -81,22 +81,22 @@ descriptions.forEach( ([key, descriptionItem]) => { /* run tests */ });</code>`)
       expectedIsString: false,
       expected: descriptionItem.getter } );
     notOk = /data-iserror/.test(tested);
-    getResult(tested, notOk, `.<i>${key}</i> is ${!descriptionItem.getter ? `not ` : ``} getter`, true);
+    getResult(tested, notOk, `[instance].${key} is ${!descriptionItem.getter ? `<i>NOT</i> ` : ``} getter`, true);
     
     tested = testThis( {
       lambda: () => (instanceProps[key] ?? false) && descriptionItem.method ,
       expectedIsString: false,
       expected: descriptionItem.method ?? false } );
     notOk = /data-iserror/.test(tested);
-    getResult(tested, notOk, `[instance].${key} is ${!descriptionItem.method ? `not ` : ``} method`, true);
+    getResult(tested, notOk, `[instance].${key} is ${!descriptionItem.method ? `<i>NOT</i> ` : ``} method`, true);
     
     tested = testThis( {
       lambda: () => (String.prototype[key] ?? false) && descriptionItem.override,
       expectedIsString: false,
       expected: descriptionItem.override } );
     notOk = /data-iserror/.test(tested);
-    getResult(tested, notOk, `.<i>${key}</i> is ${
-      !descriptionItem.override ? `not ` : ``} override of native String method/getter`, true);
+    getResult(tested, notOk, `[instance].${key} is ${
+      !descriptionItem.override ? `<i>NOT</i> ` : ``} override of native String method/getter`, true);
   });
 }
 
