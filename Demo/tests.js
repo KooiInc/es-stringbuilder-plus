@@ -193,6 +193,7 @@ function allTests() {
       "[instance].quot4Print basicString not mutated": {lambda: () => basicString, expected: `<test>`},
       "[instance].remove": { lambda: () => basicString.as`test789`.prepend`prepended to `.remove(basicString.indexOf(`to`), -7), expected: `prepended test789`},
       "[instance].reset": {lambda: () => basicString.reset, expected: ``},
+      "[instance].reverse": {lambda: () => $SB`foo 𝌆 bar mañaña`.reverse, expected: `añañam rab 𝌆 oof`},
       "[instance].surroundWith": { lambda: () => basicString.surroundWith({l: `<hello `, r: `world>`}), expected: `<hello world>` },
       "[instance].toCamel": { lambda: () => $SB`data-set-to-camel-case`.toCamel, expected: `dataSetToCamelCase` },
       "[instance].toDashed": {lambda: () => $SB`dataSetToCamelCase`.toDashed, expected: `data-set-to-camel-case`},
