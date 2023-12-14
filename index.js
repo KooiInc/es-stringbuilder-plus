@@ -37,6 +37,7 @@ function instantiate(values) {
     get wordsUp() { return instance.is(wordsFirstUp(instance.value)); },
     get toDashed() { return instance.is(toDashedNotation(instance.value)); },
     get toCamel() { return instance.is(toCamelcase(instance.value)); },
+    get reverse() { return instance.is([...instance.value].reverse().join(``)); },
     cloneWith(newValue, ...args) { return instance.clone.is(newValue, ...args); },
     quot4Print(quotes = `","`) { return quot(instance.value, quotes); },
     is(newValue, ...args) { values.instanceValue = byContract(newValue, ...args) ?? instance.value; return instance; },
