@@ -16,6 +16,8 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 ### All custom instance getters and methods
 
 **Notes** 
+- The code follows [ES20XX](https://tc39.es/ecma262/2023/), so will work with all up to date modern browsers 
+  and/or within later nodejs versions. 
 - All (*not deprecated*)
   <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">native String methods</a>
   (e.g. `toUpperCase`) are converted and usable in the same way you would use them for a regular string.
@@ -84,6 +86,8 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
 - `reset` [*getter, mutates, chainable*] Sets the value back to the value the instance was instantiated with.
 - `surroundWith({r: string (default ""), [r: string (default "")]})` [*mutates, chainable*]  
    Surround the value with strings from `[l]`(eft) and `[r]`(ight).
+- `reverse` [*getter, mutates, chainable*] Reverses the value (e.g. `hello` => `olleh`). 
+   Including strings containing Unicode ['surrogate pairs'](http://zuga.net/articles/text-what-is-a-unicode-surrogate-pair/) 
 - `toCamel` [*getter, mutates, chainable*] converts a value with pattern `aaa-bbb` to camelCased notation (`aaaBbb`). 
 - `toDashed` [*getter, mutates, chainable*] converts a value with pattern `aaaBbbCcc` to dashed notation (`aaa-bbb-ccc`)
 - `toLower` [*getter, mutates, chainable*] alias for `String.prototype.toLowerCase`.
