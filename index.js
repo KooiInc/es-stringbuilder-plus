@@ -1,3 +1,4 @@
+"use strict";
 const natives =  getNativeStringMethodKeys();
 const interpolate = interpolateFactory();
 const userExtensions = {};
@@ -109,7 +110,7 @@ function removeAllUserExtensions() {
   Object.keys(userExtensions).forEach(key => removeUserExtension(key));
 }
 
-function getExclusion() {
+function getExclusions() {
   // notes:
   // - trimLeft/-Right are redundant (use trimStart/-End),
   // - indexOf and lastIndexOf are overridden.
@@ -155,18 +156,20 @@ function wordsFirstUp(str) {
 }
 
 function getNativeStringMethodKeys() {
-  const excluded = getExclusion();
+  const excluded = getExclusions();
   const excludeFromChainRE = /^(at|charAt|codePointAt)$/i;
   const allNativeStringDescriptors = Object.entries(Object.getOwnPropertyDescriptors(String.prototype));
-  const checkReturnValue = (key, v) => v.value instanceof Function && typeof `abc`[key]() || `n/a`;
-  const chainable = allNativeStringDescriptors.filter( ([key, v]) =>
-      !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
-    .map( ([key,]) => key );
-  const valueReturn = allNativeStringDescriptors.filter( ([key, v]) =>
-      !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
-    .map( ([key,]) => key );
+  const dummyStr = `abc`;
+  const checkReturnValue = (key, v) => v.value instanceof Function && typeof dummyStr[key]() || `n/a`;
   
-  return { chainable, valueReturn }
+  return {
+    chainable: allNativeStringDescriptors.filter( ([key, v]) =>
+        !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
+      .map( ([key,]) => key ),
+    valueReturn: allNativeStringDescriptors.filter( ([key, v]) =>
+        !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
+      .map( ([key,]) => key )
+  };
 }
 
 function quot(str, chr = `","`) {
@@ -195,7 +198,7 @@ function isStringOrTemplate(str) {
 function byContract(str, ...args) {
   const isMet = isStringOrTemplate(str);
   if (!isMet && !forTest) { console.info(`✘ String contract not met: input [${
-    String(str)?.slice(0, 15)}] not a (template) string or number`); }
+    String(str)?.slice(0, 15) ?? `empty string`}] not a (template) string or number`); }
   return String(!isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``);
 }
 
@@ -290,23 +293,62 @@ function descriptionsGetter() {
 }
 
 function interpolateFactory(defaultReplacer) {
-  const isStringOrNumber = v => [String, Number].find(vv => vv === Object.getPrototypeOf( v ?? {} )?.constructor);
-  const isObject = v => Object.getPrototypeOf( v ?? `` )?.constructor === Object;
-  const invalidate = key => String(defaultReplacer ?? `{${key}}`);
-  const replacement = (key, t) => !isStringOrNumber(t[key]) ? invalidate(key) : String(t[key]);
-  const replacer = token => (...args) => replacement( args.find(a => a.key).key ?? `_`, token );
-  const replace = (str, token) => str.replace( /\{(?<key>[a-z_\d]+)}/gim, replacer(token) );
-  const mergeToken = obj => {
+  return function(str, ...tokens) {
+    return interpolate(str, processTokens(tokens));
+  }
+  
+  function isStringOrNumber(v) {
+    return [String, Number].includes(v?.constructor);
+  }
+  
+  function isObject(v) {
+    return v?.constructor === Object;
+  }
+  
+  function invalidate(key) {
+    return String(defaultReplacer ?? `{${key}}`);
+  }
+  
+  function replacement(key, token) {
+    return isStringOrNumber(token[key]) ? String(token[key]) : invalidate(key);
+  }
+  
+  function getReplacerLambda(token) {
+    return (...args) => {
+      const keyArg = args.find(a => a.key);
+      return replacement(keyArg ? keyArg.key : `_`, token);
+    };
+  }
+  
+  function replace(str, token) {
+    return str.replace(/\{(?<key>[a-z_\d]+)}/gim, getReplacerLambda(token));
+  }
+  
+  function mergeTokens(obj) {
     const entries = Object.entries(obj);
     const [key, values] = entries.shift();
-    const merged = values.reduce( (acc, v) => [...acc, {[key]: v}], []);
-    entries.forEach( ([key, value]) => value.forEach( (v, i) =>  merged[i][key] = `${v}`));
-    return merged;  };
-  const isMultiLineWithArrays = (...tokens) =>
-    tokens.length === 1 && Object.values(tokens[0]).filter(v => !Array.isArray(v)).length < 1;
-  const processTokens = (...tokens) => isMultiLineWithArrays(...tokens) ? mergeToken(tokens.shift()) : tokens;
-  const interpolate = (str, ...tokens) => tokens.flat()
-    .reduce( (acc, token) => acc.concat(!isObject(token) ? `` : replace(str, token )), ``);
+    const merged = values.map(value => ({ [key]: value }));
+    
+    entries.forEach(([key, value]) => {
+      value.forEach((v, i) => {
+        merged[i][key] = `${v}`;
+      });
+    });
+    
+    return merged;
+  }
   
-  return (str, ...tokens) => interpolate(str, ...processTokens(...tokens));
+  function isMultiLineWithArrays(tokens) {
+    return tokens.length === 1 && Object.values(tokens[0]).every(Array.isArray);
+  }
+  
+  function processTokens(tokens) {
+    return isMultiLineWithArrays(tokens) ? mergeTokens(tokens[0]) : tokens;
+  }
+  
+  function interpolate(str, tokens) {
+    return tokens.flat()
+      .map(token => isObject(token) ? replace(str, token) : ``)
+      .join(``);
+  }
 }
