@@ -1,6 +1,6 @@
 {
   "name": "esstringbuilderplus",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "ECMAScript string builder with extra's",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/KooiInc/es-stringbuilder-plus#readme",
   "devDependencies": {
-    "esbuild": "^0.19.7"
+    "esbuild": "^0.21.4"
   },
   "type": "module"
 }
