@@ -85,7 +85,9 @@ function reRouteNatives(instance, values) {
       : function() { return instance.is(values.instanceValue[key]?.()); } );
   natives.valueReturn.forEach( key => {
     const isFn = Object.getOwnPropertyDescriptor(String.prototype, key)?.value;
+    
     if (!isFn) { return; }
+    
     instance[key] = isFn.length
       ? function(...args) { return values.instanceValue[key]?.(...args); }
       : function() { return values.instanceValue[key]?.(); }
@@ -158,17 +160,19 @@ function getNativeStringMethodKeys() {
   const excluded = getExclusions();
   const excludeFromChainRE = /^(at|charAt|codePointAt)$/i;
   const allNativeStringDescriptors = Object.entries(Object.getOwnPropertyDescriptors(String.prototype));
-  const dummyStr = `abc`;
-  const checkReturnValue = (key, v) => v.value instanceof Function && typeof dummyStr[key]() || `n/a`;
   
   return {
     chainable: allNativeStringDescriptors.filter( ([key, v]) =>
-        !excluded[key] && !excludeFromChainRE.test(key) && checkReturnValue(key, v) === `string` )
+        !excluded[key] && !excludeFromChainRE.test(key) && isNativeStringMethodWithStringReturnValue(key, v) )
       .map( ([key,]) => key ),
     valueReturn: allNativeStringDescriptors.filter( ([key, v]) =>
-        !excluded[key] && (excludeFromChainRE.test(key) || checkReturnValue(key, v) !== `string`) )
+        !excluded[key] && (excludeFromChainRE.test(key) || !isNativeStringMethodWithStringReturnValue(key, v)) )
       .map( ([key,]) => key )
   };
+}
+
+function isNativeStringMethodWithStringReturnValue(key, v) {
+  return v.value instanceof Function && `A`[key]()?.constructor === String;
 }
 
 function quot(str, chr = `","`) {
@@ -196,8 +200,12 @@ function isStringOrTemplate(str) {
 
 function byContract(str, ...args) {
   const isMet = isStringOrTemplate(str);
-  if (!isMet && !forTest) { console.info(`✘ String contract not met: input [${
-    String(str)?.slice(0, 15) ?? `empty string`}] not a (template) string or number`); }
+  
+  if (!isMet && !forTest) {
+    console.info(`✘ String contract not met: input [${
+    String(str)?.slice(0, 15)}] not a (template) string or number`);
+  }
+  
   return String(!isMet ? `` : str.raw ? String.raw({ raw: str }, ...args) : str ?? ``);
 }
 
