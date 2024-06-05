@@ -6,7 +6,6 @@ let forTest = false;
 
 Object.defineProperties(StringBuilder, {
   describe: { get() { return descriptionsGetter(); } },
-  //describeObj: { get() { return descriptionsObjGetter(); } },
   hasUserExtensions: { get() { return Object.keys(userExtensions).length > 0; } },
   addExtension: { value: addUserExtension },
   removeUsrExtension: { value: removeUserExtension },
