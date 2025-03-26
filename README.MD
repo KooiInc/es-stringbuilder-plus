@@ -45,6 +45,9 @@ Also on [NPM](https://www.npmjs.com/package/esstringbuilderplus)
     `sayOk` is now a getter
     ``const test = $SB`test123`.sayOk`` => `test.value`: "*OK * test123"
   - example 2:  
+      ``$SB.addExtension(`replaceNumbersWith`, (me, replacement) => me.replace(/\d/g, replacement));``    
+      ``const test = $SB`test123 4567`.replaceNumbersWith(0)`` => `test.value` => "test000 0000"  
+      ``const test = $SB`test123 4567`.replaceNumbersWith(a => +a < 5 ? 0 : a)`` => `test.value` => "test000 0567"
       ``$SB.addExtension(`replaceFirstWord`, (me, replacement) =>``    
       &nbsp;&nbsp;&nbsp;&nbsp;``(me.indexOf(" ") ? replacement : "" ) + me.value.slice(me.indexOf(` `));``  
       ``const test = $SB`test123 4567`.replaceFirstWord(`123`)`` => `test.value` => "123 456"  
