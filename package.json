@@ -20,8 +20,5 @@
     "url": "https://github.com/KooiInc/es-stringbuilder-plus/issues"
   },
   "homepage": "https://github.com/KooiInc/es-stringbuilder-plus#readme",
-  "devDependencies": {
-    "esbuild": "^0.21.4"
-  },
   "type": "module"
 }
