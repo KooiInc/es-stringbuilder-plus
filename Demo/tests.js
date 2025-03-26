@@ -1,5 +1,5 @@
 import $SB from "../index.js";
-import {$} from "./SBHelpers.bundled.js";
+import {$} from "https://cdn.jsdelivr.net/gh/KooiInc/SBHelpers@main/index.browser.bundled.js";;
 
 const assert = assertFactory();
 let results;

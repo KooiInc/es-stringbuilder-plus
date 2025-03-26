@@ -1,6 +1,6 @@
 import $SB from "../index.js";
 import testRunner from "./tests.js";
-import {logFactory, $} from "./SBHelpers.bundled.js";
+import {logFactory, $} from "https://cdn.jsdelivr.net/gh/KooiInc/SBHelpers@main/index.browser.bundled.js";
 window.$SB = $SB; // use in console for testing
 let $c;
 const { log: print, logTop } = logFactory();
