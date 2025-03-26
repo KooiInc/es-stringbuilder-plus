@@ -345,5 +345,5 @@ function embed() {
       }
     }`,
   );
-  $.div({cssClass: `container`, toDOM: 1}).append($(`#log2screen`));
+  $(`<div class="container">`).append($(`#log2screen`));
 }
