@@ -1,9 +1,9 @@
 ## DEPRECATED ![gh image](./img/deprecated.svg)
 
-ECMAScript String Builder PLUS is depracated and will not be maintained. 
+ECMAScript String Builder PLUS is deprecated and will not be maintained. 
 
 It can be replaced with [js-stringweaver](https://github.com/KooiInc/js-stringweaver). 
-js-stringweaver is less convoluted, but lacks tag validation.
+*js-stringweaver* Is less convoluted, but lacks tag validation.
 
 ## ECMAScript String Builder PLUS
 
