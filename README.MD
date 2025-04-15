@@ -1,4 +1,4 @@
-## DEPRACATED
+## DEPRACATED <img src="//kooiinc.github.io/es-stringbuilder-plus/img/deprecated.svg">
 
 ECMAScript String Builder PLUS is depracated and will not be maintained. 
 
