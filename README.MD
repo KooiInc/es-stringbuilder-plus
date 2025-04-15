@@ -1,3 +1,10 @@
+## DEPRACATED
+
+ECMAScript String Builder PLUS is depracated and will not be maintained. 
+
+It can be replaced with [js-stringweaver](https://github.com/KooiInc/js-stringweaver). 
+js-stringweaver is less convoluted, but lacks tag validation.
+
 ## ECMAScript String Builder PLUS
 
 `es-stringbuilder-plus` delivers a way to build a string (actually 
