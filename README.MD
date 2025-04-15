@@ -1,4 +1,4 @@
-## DEPRECATED ![deprecated image]("https://kooiinc.github.io/es-stringbuilder-plus/img/deprecated.svg")
+## DEPRECATED ![gh image](./img/deprecated.svg)
 
 ECMAScript String Builder PLUS is depracated and will not be maintained. 
 
